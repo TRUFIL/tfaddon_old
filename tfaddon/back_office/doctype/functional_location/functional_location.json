@@ -1,7 +1,7 @@
 {
  "allow_copy": 0, 
- "allow_import": 0, 
- "allow_rename": 0, 
+ "allow_import": 1, 
+ "allow_rename": 1, 
  "autoname": "CD-.#####", 
  "beta": 0, 
  "creation": "2017-02-19 17:57:23.326278", 
@@ -212,7 +212,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2017-02-19 18:00:00.255046", 
+ "modified": "2017-02-19 18:54:31.332300", 
  "modified_by": "Administrator", 
  "module": "Back Office", 
  "name": "Functional Location", 
