@@ -8,7 +8,7 @@
  "custom": 0, 
  "docstatus": 0, 
  "doctype": "DocType", 
- "document_type": "Setup", 
+ "document_type": "Document", 
  "editable_grid": 1, 
  "engine": "InnoDB", 
  "fields": [
@@ -140,11 +140,11 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2017-02-08 01:25:02.810202", 
+ "modified": "2017-02-28 13:56:01.963849", 
  "modified_by": "Administrator", 
  "module": "Back Office", 
  "name": "Cities", 
- "name_case": "", 
+ "name_case": "UPPER CASE", 
  "owner": "Administrator", 
  "permissions": [
   {
