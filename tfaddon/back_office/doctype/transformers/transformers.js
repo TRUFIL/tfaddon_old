@@ -3,6 +3,7 @@
 
 frappe.ui.form.on('Transformers', {
 	refresh: function(frm) {
+		frm.toggle_display(['eq_params_html'], !frm.doc.__islocal);
 
 	}
 });
