@@ -9,7 +9,7 @@ def get_data():
 			"color": "yellow",
 			"icon": "octicon octicon-file-directory",
 			"type": "module",
-			"label": _("TRUFIL Addon")
+			"label": _("TRUFIL")
 		},
 		{
 			"module_name": "Back Office",
@@ -17,5 +17,12 @@ def get_data():
 			"icon": "octicon octicon-file-directory",
 			"type": "module",
 			"label": _("Back Office")
-		}	
+		},	
+		{
+			"module_name": "Laboratory Operation",
+			"color": "yellow",
+			"icon": "octicon octicon-file-directory",
+			"type": "module",
+			"label": _("Lab Operation")
+		}
 	]

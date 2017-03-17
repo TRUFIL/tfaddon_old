@@ -15,4 +15,4 @@ recursive-include tfaddon *.png
 recursive-include tfaddon *.py
 recursive-include tfaddon *.svg
 recursive-include tfaddon *.txt
-recursive-exclude tfaddon *.pyc
+recursive-exclude * *.pyc
