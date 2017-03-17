@@ -10,11 +10,11 @@ MIT
 
 
 
-## Logo and Trademark
+#### Logo and Trademark
 
 The brand name TRUFIL and the logo are trademarks of TRUFIL Limited
 
-### Introduction
+#### Introduction
 
 TRUFIL Limited owns and oversees the trademarks for the TRUFIL name and logos. 
 
