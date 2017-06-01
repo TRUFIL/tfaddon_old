@@ -4,8 +4,8 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from frappe.model.document import Document
+from frappe import _
 from datetime import datetime, date, time
 
 class Equipments(Document):
@@ -25,7 +25,7 @@ class Equipments(Document):
 			self.tr_sl_no = generate_unique_serial_no()
 		
 		# Update Equipment Title
-		self.title = self.tr_manufacturer + self.tr_sl_no
+		self.title = self.tr_manufacturer + '-' + self.tr_sl_no
 
 	# after saving
 	def on_update(self):
