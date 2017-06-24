@@ -30,6 +30,7 @@ class Equipments(Document):
 	# after saving
 	def on_update(self):
 		pass
+
 	# when document is set as submitted
 	def on_submit(self):
 		pass
@@ -79,89 +80,110 @@ class Equipments(Document):
 
 	def get_equipment_info(self):
 		eq_params = {}
-
 		# Capacity
-		if (self.eq_category == "TRANSFORMER"):
-			if (self.tr_rating1 and self.tr_rating2):
-				eq_params["Capacity"] = str(self.tr_rating1) + "/" + str(self.tr_rating2) + " kVA"
-			elif (self.tr_rating1):
-				eq_params["Capacity"] = str(self.tr_rating1) + " kVA"
-			else:
-				eq_params["Capacity"] = "Not Available"
-		elif (self.eq_category == "CURRENT" or self.eq_category == "POTENTIAL"):
-			if (self.tr_rating1):
-				eq_params["Capacity"] = str(self.tr_rating1) + " VA"
-			else:
-				eq_params["Capacity"] = "Not Available"
-		elif (self.eq_category == "REACTOR"):
-			if (self.tr_rating1):
-				eq_params["Capacity"] = str(self.tr_rating1) + " kVAr"
-			else:
-				eq_params["Capacity"] = "Not Available"
-		else:
-			eq_params["Capacity"] = ""
+		eq_params["capacity"] = self.get_capacity()
 		
 		# Voltage
-		if (self.eq_category == "CURRENT" or self.eq_category == "REACTOR" or self.eq_category == "BUSHING"):
-			if (self.tr_pv):
-				eq_params["Voltage"] = str(self.tr_pv) + " Volts"
-			else:
-				eq_params["Voltage"] = "Not Available"
-		else:
-			eq_params["Voltage"] = ""
+		eq_params["voltage"] = self.get_voltage()
 
 		# Voltage Ratio
-		if (self.eq_category == "TRANSFORMER" or self.eq_category == "POTENTIAL"):
-			if (self.tr_pv and self.tr_sv and self.tr_tv):
-				eq_params["Voltage Ratio"] = str(self.tr_pv) + "/" + str(self.tr_sv) + ("/" + str(self.tr_tv)) + " Volts"
-			elif (self.tr_pv and self.tr_sv):
-				eq_params["Voltage Ratio"] = str(self.tr_pv) + "/" + str(self.tr_sv) + " Volts"
-			else:
-				eq_params["Voltage Ratio"] = "Not Available"
-		else:
-			eq_params["Voltage Ratio"] = ""
+		eq_params["voltage ratio"] = self.get_voltage_ratio()
 
 		# Current
-		if (self.eq_category == "BUSHING"):
-			if (self.tr_pc):
-				eq_params["Current"] = str(self.tr_pc) + " Amps"
-			else:
-				eq_params["Current"] = "Not Available"
-		else:
-			eq_params["Current"] = ""
+		eq_params["current"] = self.get_current()
 		
 		# Current Ratio
-		if (self.eq_category == "CURRENT"):
-			if (self.tr_pc and self.tr_sc):
-				eq_params["Current Ratio"] = str(self.tr_pc) + "/" + str(self.tr_sc) + " Amps"
-			else:
-				eq_params["Current Ratio"] = "Not Available"
-		else:
-			eq_params["Current Ratio"] = ""
+		eq_params["current ratio"] = self.get_current_ratio()
 
 		# No of Phases
-		if (self.eq_category != "CONTAINER"):
-			if (self.tr_phases):
-				eq_params["No of Phases"] = self.tr_phases
-			else:
-				eq_params["No of Phases"] = "Not Available"
-		else:
-			eq_params["No of Phases"] = ""
+		eq_params["no of phases"] = self.get_phases()
 
 		# Update Read Only Fields
-		self.capacity = eq_params["Capacity"]
-		if (eq_params["Voltage Ratio"]):
-			self.voltage = eq_params["Voltage Ratio"]
+		self.capacity = eq_params["capacity"]
+		if (eq_params["voltage ratio"]):
+			self.voltage = eq_params["voltage ratio"]
 		else:
-			self.voltage = eq_params["Voltage"]
+			self.voltage = eq_params["voltage"]
 
-		if (eq_params["Current Ratio"]):
-			self.current = eq_params["Current Ratio"]
+		if (eq_params["current ratio"]):
+			self.current = eq_params["current ratio"]
 		else:
-			self.current = eq_params["Current"]
+			self.current = eq_params["current"]
 
 		# return eq_params
-		self.set_onload('equipment_info', eq_params)
+		#self.set_onload('equipment_info', eq_params)
+
+	def get_capacity(self):
+		capacity = ""
+		if (self.tr_rating1 and self.tr_rating2):
+			capacity = str(self.tr_rating1) + "/" + str(self.tr_rating2)
+		elif (self.tr_rating1):
+			capacity = str(self.tr_rating1)
+		else:
+			capacity = ""
+		if (capacity != ""):
+			if (self.eq_category == "REACTOR"):
+				capacity = capacity + " kVAr"
+			else:
+				capacity = capacity + " kVA"
+		return capacity
+
+	def get_voltage(self):
+		voltage = ""
+		if (self.eq_category == "CURRENT" or self.eq_category == "REACTOR" or self.eq_category == "BUSHING"):
+			if (self.tr_pv):
+				voltage = str(self.tr_pv) + " Volts"
+			else:
+				voltage = "Not Available"
+		else:
+			voltage = ""
+		return voltage
+
+	def get_voltage_ratio(self):
+		vratio = ""
+		if (self.eq_category == "TRANSFORMER" or self.eq_category == "POTENTIAL"):
+			if (self.tr_pv and self.tr_sv and self.tr_tv):
+				vratio = str(self.tr_pv) + "/" + str(self.tr_sv) + ("/" + str(self.tr_tv)) + " Volts"
+			elif (self.tr_pv and self.tr_sv):
+				vratio = str(self.tr_pv) + "/" + str(self.tr_sv) + " Volts"
+			else:
+				vratio = "Not Available"
+		else:
+			vratio = ""
+		return vratio
+
+	def get_current(self):
+		current = ""
+		if (self.eq_category == "BUSHING"):
+			if (self.tr_pc):
+				current = str(self.tr_pc) + " Amps"
+			else:
+				current = "Not Available"
+		else:
+			current = ""
+		return current
+
+	def get_current_ratio(self):
+		cratio = ""
+		if (self.eq_category == "CURRENT"):
+			if (self.tr_pc and self.tr_sc):
+				cratio = str(self.tr_pc) + "/" + str(self.tr_sc) + " Amps"
+			else:
+				cratio = "Not Available"
+		else:
+			cratio = ""
+		return cratio
+
+	def get_phases(self):
+		phases = ""
+		if (self.eq_category != "CONTAINER"):
+			if (self.tr_phases):
+				phases = self.tr_phases
+			else:
+				phases = "Not Available"
+		else:
+			phases = ""
+		return phases
 
 # Function to generate unique serial number
 def generate_unique_serial_no():
@@ -169,19 +191,27 @@ def generate_unique_serial_no():
 	return "#" + sl_no.strftime('%Y%m%d%H%M%S')
 
 
+def get_eq_info_template():
+	info_template = """
+	<div>
 
+	</div>
+"""
+
+
+"""
 def get_default_equipment_info_template():
 	return '''
-{% if eq_info["Capacity"] %}'''+_('Capacity')+''': {{ eq_info["Capacity"] }}<br>{% endif -%}
-{% if eq_info["Voltage"] %}'''+_('Voltage')+''': {{ eq_info["Voltage"] }}<br>{% endif -%}
-{% if eq_info["Voltage Ratio"] %}'''+_('Voltage Ratio')+''': {{ eq_info["Voltage Ratio"] }}<br>{% endif -%}
-{% if eq_info["Current"] %}'''+_('Current')+''': {{ eq_info["Current"] }}<br>{% endif -%}
-{% if eq_info["Current Ratio"] %}'''+_('Current Ratio')+''': {{ eq_info["Current Ratio"] }}<br>{% endif -%}
-{% if eq_info["No of Phases"] %}'''+_('No of Phases')+''': {{ eq_info["No of Phases"] }}<br>{% endif -%}
+{%- if eq_info["Capacity"] -%}'''+_('Capacity')+''': {{ eq_info["Capacity"] }}<br>{%- endif -%}
+{%- if eq_info["Voltage"] -%}'''+_('Voltage')+''': {{ eq_info["Voltage"] }}<br>{%- endif -%}
+{%- if eq_info["Voltage Ratio"] -%}'''+_('Voltage Ratio')+''': {{ eq_info["Voltage Ratio"] }}<br>{%- endif -%}
+{%- if eq_info["Current"] -%}'''+_('Current')+''': {{ eq_info["Current"] }}<br>{%- endif -%}
+{%- if eq_info["Current Ratio"] -%}'''+_('Current Ratio')+''': {{ eq_info["Current Ratio"] }}<br>{%- endif -%}
+{%- if eq_info["No of Phases"] -%}'''+_('No of Phases')+''': {{ eq_info["No of Phases"] }}<br>{%- endif -%}
 
 
 	'''
-
+"""
 """
 @frappe.whitelist()
 def get_default_address_template():
