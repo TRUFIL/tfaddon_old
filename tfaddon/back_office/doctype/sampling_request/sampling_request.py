@@ -20,32 +20,33 @@ class SamplingRequest(Document):
 	def validate_mandatory_field(self):
 		msg = ''
 		today = date.today()
-		if self.status == 'NEW':
+		if self.req_status == 'New':
 			# validate transaction date v/s today's date
-			if self.transaction_date:
-				if getdate(self.transaction_date) > today:
-					frappe.throw(_("Date Cannot be a future Date"))
+			if self.est_start_date:
+				if getdate(self.est_start_date) < getdate(self.transaction_date):
+					frappe.throw(_("Start Date cannot be past date"))
 
 			# validate other mandatory field
-			if not self.assigned_to:
-				msg = msg + "Job Assigned To, "
+			if not self.site_location:
+				frappe.throw(_("Site Location is Required"))
 			if not self.contact_name:
-				msg = msg + "Person to Contact, "
+				frappe.throw(_("Person to Contact is Required"))
 			if not self.contact_no:
-				msg = msg + "Contact No, "
+				frappe.throw(_("Contact No is Required"))
+			if not self.est_start_date:
+				frappe.throw(_("Start Date is Required"))
+			if not self.est_duration:
+				frappe.throw(_("Activity Duration is Required"))
 			if not self.est_samples:
-				msg = msg + "Estimated No of Samples, "
+				frappe.throw(_("Estimated No of Samples is Required"))
 			if not self.est_container:
-				msg = msg + "Estimated No of Bottles, "
-			if msg: 
-				msg = msg + "are required to proceed"
-				frappe.throw(_(msg))
+				frappe.throw(_("Estimated No of Bottles is Required"))
 
-		if self.status == 'ASSIGNED':
-			if not self.act_samples:
-				msg = msg + "Actual No of Samples, "
-			if not self.act_bottles:
-				msg = msg + "Actual No of Bottles, "
+		if self.req_status == 'Assigned':
+			if not self.assigned_to:
+				frappe.throw(_("Job Assigned to is Required"))
+
+		if self.req_status == 'Closed':
 			if msg: 
 				msg = msg + "are required to proceed"
 				frappe.throw(_(msg))
