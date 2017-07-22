@@ -8,9 +8,33 @@ from frappe.model.document import Document
 from frappe import _
 from datetime import datetime, date, time
 
-class Samples(Document):
+class Samples(TFStatusUpdater):
+	def onload(self):
+		pass
 	def validate(self):
 		self.validate_mandatory()
+
+	def has_dispatch_details(self):
+		pass
+
+	def has_receipt_details(self):
+		pass
+
+	def has_open_job_order(self):
+		#return frappe.db.get_value("Job Order", {"sample_name": self.name})
+		#last_login, last_ip = frappe.db.get_value("User", "test@example.com", ["last_login", "last_ip"])
+		docstatus, status = frappe.db.get_value("Job Order", {"sample_name": self.name}, ["docstatus", "status"])
+		if (docstatus == 1 and status != "Completed"):
+			return True
+		else:
+			return False
+
+
+	def has_completed_job_order(self):
+		pass
+
+	def has_disposed_details(self):
+		pass
 
 	def validate_mandatory(self):
 		msg=''
@@ -43,5 +67,7 @@ class Samples(Document):
 			if msg: 
 				msg = msg + "etc. are required fields"
 				frappe.throw(_(msg))
+
+
 
 # Other Functiona
