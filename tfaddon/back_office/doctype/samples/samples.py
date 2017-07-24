@@ -7,6 +7,7 @@ import frappe
 from frappe.model.document import Document
 from frappe import _
 from datetime import datetime, date, time
+from tfaddon.controllers.tf_status_updater import TFStatusUpdater
 
 class Samples(TFStatusUpdater):
 	def onload(self):
