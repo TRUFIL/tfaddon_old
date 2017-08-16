@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe import _
-from datetime import datetime, date, time
+import tfaddon
 
 class Equipments(Document):
 	# load calculated details
@@ -20,12 +20,12 @@ class Equipments(Document):
 	# before inserting or updating
 	def validate(self):
 		self.validate_mandatory_field()
+
 		# Update Serial Number
-		if (self.tr_sl_no == "#"):
-			self.tr_sl_no = generate_unique_serial_no()
-		
-		# Update Equipment Title
-		self.title = self.tr_manufacturer + '-' + self.tr_sl_no
+		if (self.eq_sl_no == "#"):
+			self.eq_sl_no = tfaddon.generate_unique_serial_no()
+
+		self.update_read_only_fields()
 
 	# after saving
 	def on_update(self):
@@ -45,38 +45,70 @@ class Equipments(Document):
 
 	# validate all the required fields 
 	def validate_mandatory_field(self):
-		# validate equipment parameters on equipment type
-		if (self.eq_category != "CONTAINER"):
-			if not (self.tr_phases):
-				frappe.throw(_("Please select appropriate No of Phases"), frappe.MandatoryError)
+		# Oil Type is Mandatory 
+		if not self.eq_manufacturer:
+			frappe.throw(_("Manufacturer is required. Select 'Unknown' if not available"))
 
-			if (self.eq_category == "TRANSFORMER" or self.eq_category == "POTENTIAL"):
-				if (not self.tr_rating1 or self.tr_rating1 == 0):
-					frappe.throw(_("Primary Rating is Mandatory"), frappe.MandatoryError)
-				if (not self.tr_pv or self.tr_pv == 0):
+		if not self.eq_sl_no:
+			frappe.throw(_("Manufacturer's Serial No is required. Type # to generate"))
+
+		if (self.eq_yom):
+			import re
+			p = re.compile("[1]{1}[9]{1}[0-9]{2}")
+			q = re.compile("[2]{1}[0]{1}[0-9]{2}")
+			if not (p.match(self.eq_yom) or q.match(self.eq_yom)):
+				frappe.throw(_("Invalid Manufacturing Year"))
+			if (frappe.utils.data.cint(self.eq_yom) > 2017):
+				frappe.throw(_("Manufacturing Year cannot be future year"))
+
+		if not self.eq_oil_type:
+			frappe.throw(_("Oil Type is required"))
+
+		# validate equipment parameters on equipment type
+		if (self.eq_group != "CONTAINER"):
+			# following Items are mandatory for all equipments except Containers
+			if not self.voltage_class:
+				frappe.throw(_("Voltage Class is required"))
+
+			if (self.eq_group == "TRANSFORMER" or self.eq_group == "POTENTIAL"):
+				if (not self.eq_capacity or self.eq_capacity == 0):
+					frappe.throw(_("Rating is Mandatory"), frappe.MandatoryError)
+				if (not self.eq_pv or self.eq_pv == 0):
 					frappe.throw(_("Primary Voltage is Mandatory"), frappe.MandatoryError)
-				if (not self.tr_sv or self.tr_sv == 0):
+				if (not self.eq_sv or self.eq_sv == 0):
 					frappe.throw(_("Secondary Voltage is Mandatory"), frappe.MandatoryError)
-			elif (self.eq_category == "CURRENT"):
-				if (not self.tr_rating1 or self.tr_rating1 == 0):
-					frappe.throw(_("Primary Rating is Mandatory"), frappe.MandatoryError)
-				if (not self.tr_pv or self.tr_pv == 0):
-					frappe.throw(_("Primary Voltage is Mandatory"), frappe.MandatoryError)
-				if (not self.tr_pc):
+			elif (self.eq_group == "CURRENT"):
+				if (not self.eq_capacity or self.eq_capacity == 0):
+					frappe.throw(_("Rating is Mandatory"), frappe.MandatoryError)
+				if (not self.eq_pc):
 					frappe.throw(_("Primary current is Mandatory"), frappe.MandatoryError)
-			elif (self.eq_category == "REACTOR"):
-				if (not self.tr_rating1 or self.tr_rating1 == 0):
-					frappe.throw(_("Primary Rating is Mandatory"), frappe.MandatoryError)
-				if (not self.tr_pv or self.tr_pv == 0):
-					frappe.throw(_("Primary Voltage is Mandatory"), frappe.MandatoryError)
-			elif (self.eq_category == "BUSHING"):
-				if (not self.tr_pv or self.tr_pv == 0):
-					frappe.throw(_("Primary Voltage is Mandatory"), frappe.MandatoryError)
-				if (not self.tr_pc or self.tr_pc == 0):
+				if (not self.eq_sc):
+					frappe.throw(_("Secondary current is Mandatory"), frappe.MandatoryError)
+			elif (self.eq_group == "REACTOR"):
+				if (not self.eq_capacity or self.eq_capacity == 0):
+					frappe.throw(_("Rating is Mandatory"), frappe.MandatoryError)
+			elif (self.eq_group == "BUSHING"):
+				if (not self.eq_pc or self.eq_pc == 0):
 					frappe.throw(_("Primary current is Mandatory"), frappe.MandatoryError)
 			else:
-				if (not self.tr_pv or self.tr_pv == 0):
+				if (not self.eq_pv or self.eq_pv == 0):
 					frappe.throw(_("Primary Voltage is Mandatory"), frappe.MandatoryError)
+
+			if not (self.eq_phases):
+				frappe.throw(_("Please select appropriate No of Phases"), frappe.MandatoryError)
+
+	def update_read_only_fields(self):
+		# Update Equipment Title
+		self.title = self.eq_manufacturer + '-' + self.eq_sl_no
+		if self.eq_group == "CONTAINER":
+			self.capacity = "Not Applicable"
+			self.voltage = "Not Applicable"
+			self.current = "Not Applicable"
+		else:
+			self.capacity = self.get_capacity()
+			self.voltage = self.get_voltage()
+			self.current = self.get_current()
+
 
 	def get_equipment_info(self):
 		eq_params = {}
@@ -98,76 +130,74 @@ class Equipments(Document):
 		# No of Phases
 		eq_params["no of phases"] = self.get_phases()
 
-		# Update Read Only Fields
-		self.capacity = eq_params["capacity"]
-		if (eq_params["voltage ratio"]):
-			self.voltage = eq_params["voltage ratio"]
-		else:
-			self.voltage = eq_params["voltage"]
-
-		if (eq_params["current ratio"]):
-			self.current = eq_params["current ratio"]
-		else:
-			self.current = eq_params["current"]
-
 		# return eq_params
 		#self.set_onload('equipment_info', eq_params)
 
 	def get_capacity(self):
-		capacity = ""
-		if (self.tr_rating1 and self.tr_rating2):
-			capacity = str(self.tr_rating1) + "/" + str(self.tr_rating2)
-		elif (self.tr_rating1):
-			capacity = str(self.tr_rating1)
+		if (self.eq_group == "POTENTIAL" or self.eq_group == "POTENTIAL"):
+			unit = " VA"
+		elif (self.eq_group == "REACTOR"):
+			unit = " kVAr"
 		else:
-			capacity = ""
-		if (capacity != ""):
-			if (self.eq_category == "REACTOR"):
-				capacity = capacity + " kVAr"
-			else:
-				capacity = capacity + " kVA"
-		return capacity
+			unit = " kVA"
 
+		if (self.eq_capacity):
+			capacity = str(self.eq_capacity) + unit
+		else:
+			capacity = "Not Available"
+
+		return capacity
+		
 	def get_voltage(self):
 		voltage = ""
-		if (self.eq_category == "CURRENT" or self.eq_category == "REACTOR" or self.eq_category == "BUSHING"):
-			if (self.tr_pv):
-				voltage = str(self.tr_pv) + " Volts"
+		if (self.eq_group == "CURRENT" or self.eq_group == "BUSHING"):
+			if (self.eq_pv):
+				voltage = str(self.eq_pv) + " Volts"
+			else:
+				voltage = "Not Available"
+		elif (self.eq_group == "TRANSFORMER" or self.eq_group == "POTENTIAL"):
+			if (self.eq_pv and self.eq_sv and self.eq_tv):
+				vratio = str(self.eq_pv) + "/" + str(self.eq_sv) + ("/" + str(self.eq_tv)) + " Volts"
+			elif (self.eq_pv and self.eq_sv):
+				voltage = str(self.eq_pv) + "/" + str(self.eq_sv) + " Volts"
 			else:
 				voltage = "Not Available"
 		else:
-			voltage = ""
+			voltage = "Not Applicable"
+
 		return voltage
+
+	def get_current(self):
+		current = ""
+		if (self.eq_group == "BUSHING"):
+			if (self.eq_pc):
+				current = str(self.eq_pc) + " Amps"
+		elif (self.eq_group == "CURRENT"):
+			if (self.eq_pc and self.eq_sc):
+				current = str(self.eq_pc) + "/" + str(self.eq_sc) + " Amps"
+		else:
+			current = "Not Applicable"
+			
+		return current
 
 	def get_voltage_ratio(self):
 		vratio = ""
-		if (self.eq_category == "TRANSFORMER" or self.eq_category == "POTENTIAL"):
-			if (self.tr_pv and self.tr_sv and self.tr_tv):
-				vratio = str(self.tr_pv) + "/" + str(self.tr_sv) + ("/" + str(self.tr_tv)) + " Volts"
-			elif (self.tr_pv and self.tr_sv):
-				vratio = str(self.tr_pv) + "/" + str(self.tr_sv) + " Volts"
+		if (self.eq_group == "TRANSFORMER" or self.eq_group == "POTENTIAL"):
+			if (self.eq_pv and self.eq_sv and self.eq_tv):
+				vratio = str(self.eq_pv) + "/" + str(self.eq_sv) + ("/" + str(self.eq_tv)) + " Volts"
+			elif (self.eq_pv and self.eq_sv):
+				vratio = str(self.eq_pv) + "/" + str(self.eq_sv) + " Volts"
 			else:
 				vratio = "Not Available"
 		else:
 			vratio = ""
 		return vratio
 
-	def get_current(self):
-		current = ""
-		if (self.eq_category == "BUSHING"):
-			if (self.tr_pc):
-				current = str(self.tr_pc) + " Amps"
-			else:
-				current = "Not Available"
-		else:
-			current = ""
-		return current
-
 	def get_current_ratio(self):
 		cratio = ""
-		if (self.eq_category == "CURRENT"):
-			if (self.tr_pc and self.tr_sc):
-				cratio = str(self.tr_pc) + "/" + str(self.tr_sc) + " Amps"
+		if (self.eq_group == "CURRENT"):
+			if (self.eq_pc and self.eq_sc):
+				cratio = str(self.eq_pc) + "/" + str(self.eq_sc) + " Amps"
 			else:
 				cratio = "Not Available"
 		else:
@@ -176,20 +206,14 @@ class Equipments(Document):
 
 	def get_phases(self):
 		phases = ""
-		if (self.eq_category != "CONTAINER"):
-			if (self.tr_phases):
-				phases = self.tr_phases
+		if (self.eq_group != "CONTAINER"):
+			if (self.eq_phases):
+				phases = self.eq_phases
 			else:
 				phases = "Not Available"
 		else:
 			phases = ""
 		return phases
-
-# Function to generate unique serial number
-def generate_unique_serial_no():
-	sl_no = datetime.now()
-	return "#" + sl_no.strftime('%Y%m%d%H%M%S')
-
 
 def get_eq_info_template():
 	info_template = """

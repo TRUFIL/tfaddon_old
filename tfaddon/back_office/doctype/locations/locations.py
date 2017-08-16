@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _, msgprint, throw
 from frappe.model.document import Document
 
 class Locations(Document):
@@ -14,7 +15,7 @@ class Locations(Document):
 	# before inserting or updating
 	def validate(self):
 		self.validate_mandatory_field()
-		self.update_readonly_fields()
+		#self.update_readonly_fields()
 	
 	# after saving
 	def on_update(self):
@@ -34,9 +35,8 @@ class Locations(Document):
 	# validate all the required fields are properly filled up
 	def validate_mandatory_field(self):
 		if not (self.ccd):
-			if not (self.location and self.cd):
-				frappe.throw(_("Substation and Customer Eq Designation is required if Code designation not available"), frappe.MandatoryError)
-	
+			msgprint(_("Owner’s Location ID is missing. Please update ASAP."))
+			
 	# update all the derived fields 
 	def update_readonly_fields(self):
 		if (self.ccd):
