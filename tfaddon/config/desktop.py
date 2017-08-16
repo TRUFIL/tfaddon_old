@@ -19,6 +19,13 @@ def get_data():
 			"label": _("Back Office")
 		},	
 		{
+			"module_name": "Sampling",
+			"color": "yellow",
+			"icon": "octicon octicon-file-directory",
+			"type": "module",
+			"label": _("Sampling")
+		},	
+		{
 			"module_name": "Laboratory Operation",
 			"color": "yellow",
 			"icon": "octicon octicon-file-directory",
