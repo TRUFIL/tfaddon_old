@@ -9,15 +9,12 @@ from frappe import _
 import tfaddon
 
 class Equipments(Document):
-	# load calculated details
 	def onload(self):
-		self.get_equipment_info()
+		pass
 
-	# before inserting or updating
 	def before_insert(self):
 		pass
 	
-	# before inserting or updating
 	def validate(self):
 		self.validate_mandatory_field()
 
@@ -27,25 +24,22 @@ class Equipments(Document):
 
 		self.update_read_only_fields()
 
-	# after saving
 	def on_update(self):
 		pass
 
-	# when document is set as submitted
 	def on_submit(self):
 		pass
 	
-	# when document is set to be cancellec
 	def on_cancel(self):
 		pass
 	
-	# before it is about to be deleted
 	def on_trash (self):
 		pass
 
-	# validate all the required fields 
 	def validate_mandatory_field(self):
-		# Oil Type is Mandatory 
+		if not self.owner_eq_id:
+			self.owner_eq_id = "NS"
+
 		if not self.eq_manufacturer:
 			frappe.throw(_("Manufacturer is required. Select 'Unknown' if not available"))
 
@@ -53,22 +47,28 @@ class Equipments(Document):
 			frappe.throw(_("Manufacturer's Serial No is required. Type # to generate"))
 
 		if (self.eq_yom):
-			import re
+			import re, datetime
 			p = re.compile("[1]{1}[9]{1}[0-9]{2}")
 			q = re.compile("[2]{1}[0]{1}[0-9]{2}")
 			if not (p.match(self.eq_yom) or q.match(self.eq_yom)):
-				frappe.throw(_("Invalid Manufacturing Year"))
-			if (frappe.utils.data.cint(self.eq_yom) > 2017):
+				frappe.throw(_("Valid Manufacturing Year must be between 1900 to Current Year"))
+			cur_year = frappe.utils.data.cint(tfaddon.cur_year())
+			if (frappe.utils.data.cint(self.eq_yom) > cur_year):
 				frappe.throw(_("Manufacturing Year cannot be future year"))
 
+		# Oil Type is Mandatory 
 		if not self.eq_oil_type:
 			frappe.throw(_("Oil Type is required"))
+
 
 		# validate equipment parameters on equipment type
 		if (self.eq_group != "CONTAINER"):
 			# following Items are mandatory for all equipments except Containers
-			if not self.voltage_class:
-				frappe.throw(_("Voltage Class is required"))
+			if not (self.eq_oil_qty and self.eq_oil_qty != 0):
+				frappe.throw(_("Oil Quantity is required"))
+
+			if (not self.voltage_class or self.voltage_class == "NA"):
+				frappe.throw(_("Specify appropriate Voltage Class"))
 
 			if (self.eq_group == "TRANSFORMER" or self.eq_group == "POTENTIAL"):
 				if (not self.eq_capacity or self.eq_capacity == 0):
@@ -97,122 +97,80 @@ class Equipments(Document):
 			if not (self.eq_phases):
 				frappe.throw(_("Please select appropriate No of Phases"), frappe.MandatoryError)
 
+			if (self.eq_cooling == "ONAN"):
+				self.eq_rating1 = self.eq_capacity
+			else:
+				self.eq_rating1 = 0
+		else:
+			self.eq_phases = "NA"
+			self.voltage_class = "NA"
+			self.eq_oil_qty = 0
+
 	def update_read_only_fields(self):
 		# Update Equipment Title
 		self.title = self.eq_manufacturer + '-' + self.eq_sl_no
-		if self.eq_group == "CONTAINER":
-			self.capacity = "Not Applicable"
-			self.voltage = "Not Applicable"
-			self.current = "Not Applicable"
-		else:
-			self.capacity = self.get_capacity()
-			self.voltage = self.get_voltage()
-			self.current = self.get_current()
-
-
-	def get_equipment_info(self):
-		eq_params = {}
-		# Capacity
-		eq_params["capacity"] = self.get_capacity()
-		
-		# Voltage
-		eq_params["voltage"] = self.get_voltage()
-
-		# Voltage Ratio
-		eq_params["voltage ratio"] = self.get_voltage_ratio()
-
-		# Current
-		eq_params["current"] = self.get_current()
-		
-		# Current Ratio
-		eq_params["current ratio"] = self.get_current_ratio()
-
-		# No of Phases
-		eq_params["no of phases"] = self.get_phases()
-
-		# return eq_params
-		#self.set_onload('equipment_info', eq_params)
+		self.capacity = self.get_capacity()
+		self.voltage = self.get_voltage()
+		self.current = self.get_current()
 
 	def get_capacity(self):
-		if (self.eq_group == "POTENTIAL" or self.eq_group == "POTENTIAL"):
+		if (self.eq_group == "POTENTIAL" or self.eq_group == "CURRENT"):
 			unit = " VA"
 		elif (self.eq_group == "REACTOR"):
 			unit = " kVAr"
 		else:
 			unit = " kVA"
 
-		if (self.eq_capacity):
-			capacity = str(self.eq_capacity) + unit
+		if (self.eq_group != "CONTAINER" and self.eq_group != "BUSHING"):
+			if (self.eq_capacity):
+				capacity = str(self.eq_capacity) + unit
+			else:
+				capacity = "NS"
+		elif (self.eq_group == "BUSHING"):
+			capacity = str(self.eq_pc) + " Amps"
+
 		else:
-			capacity = "Not Available"
+			capacity = "NA"
 
 		return capacity
 		
 	def get_voltage(self):
-		voltage = ""
-		if (self.eq_group == "CURRENT" or self.eq_group == "BUSHING"):
-			if (self.eq_pv):
-				voltage = str(self.eq_pv) + " Volts"
-			else:
-				voltage = "Not Available"
-		elif (self.eq_group == "TRANSFORMER" or self.eq_group == "POTENTIAL"):
+		if(self.eq_group in ["CURRENT","REACTOR","BUSHING" ,"CONTAINER"]):
+			voltage = "NA"
+		else:
 			if (self.eq_pv and self.eq_sv and self.eq_tv):
-				vratio = str(self.eq_pv) + "/" + str(self.eq_sv) + ("/" + str(self.eq_tv)) + " Volts"
+				voltage = str(self.eq_pv) + "/" + str(self.eq_sv) + ("/" + str(self.eq_tv)) + " Volts"
 			elif (self.eq_pv and self.eq_sv):
 				voltage = str(self.eq_pv) + "/" + str(self.eq_sv) + " Volts"
+			elif (self.eq_pv):
+				voltage = str(self.eq_pv) + " Volts"
 			else:
-				voltage = "Not Available"
-		else:
-			voltage = "Not Applicable"
+				voltage = "NS"
 
 		return voltage
 
 	def get_current(self):
-		current = ""
-		if (self.eq_group == "BUSHING"):
-			if (self.eq_pc):
-				current = str(self.eq_pc) + " Amps"
-		elif (self.eq_group == "CURRENT"):
+		if(self.eq_group in ["CURRENT","BUSHING"]):
 			if (self.eq_pc and self.eq_sc):
 				current = str(self.eq_pc) + "/" + str(self.eq_sc) + " Amps"
+			elif (self.eq_pc):
+				current = str(self.eq_pc) + " Amps"
+			else:
+				current = "NS"
 		else:
-			current = "Not Applicable"
+			current = "NA"
 			
 		return current
 
-	def get_voltage_ratio(self):
-		vratio = ""
-		if (self.eq_group == "TRANSFORMER" or self.eq_group == "POTENTIAL"):
-			if (self.eq_pv and self.eq_sv and self.eq_tv):
-				vratio = str(self.eq_pv) + "/" + str(self.eq_sv) + ("/" + str(self.eq_tv)) + " Volts"
-			elif (self.eq_pv and self.eq_sv):
-				vratio = str(self.eq_pv) + "/" + str(self.eq_sv) + " Volts"
-			else:
-				vratio = "Not Available"
-		else:
-			vratio = ""
-		return vratio
-
-	def get_current_ratio(self):
-		cratio = ""
-		if (self.eq_group == "CURRENT"):
-			if (self.eq_pc and self.eq_sc):
-				cratio = str(self.eq_pc) + "/" + str(self.eq_sc) + " Amps"
-			else:
-				cratio = "Not Available"
-		else:
-			cratio = ""
-		return cratio
-
 	def get_phases(self):
-		phases = ""
 		if (self.eq_group != "CONTAINER"):
 			if (self.eq_phases):
 				phases = self.eq_phases
 			else:
-				phases = "Not Available"
+				phases = "NS"
 		else:
-			phases = ""
+			phases = "NA"
+
 		return phases
 
 def get_eq_info_template():

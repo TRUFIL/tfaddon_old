@@ -7,65 +7,185 @@ var response_fields = ['act_samples','act_bottles','response_remarks'];
 
 frappe.ui.form.on('Sampling Request', {
 	onload: function(frm) {
-		frm.events.required_fields(frm);
+		//frm.events.workflow_state(frm);
 	},
-	refresh: function(frm) {
-		frm.events.required_fields(frm);
-		//cur_frm.cscript.show_hide_fields(frm.doc)
+	refresh: function(frm, cdt, cdn) {
+		var doc = frm.doc;
+		alert("From refresh--> Docstatus : " + doc.docstatus + "\n" + "workflow_state : " + doc.workflow_state);
+		if(doc.docstatus == 1 && doc.workflow_state == 'In Process') {
+			cur_frm.add_custom_button(__('Close'), cur_frm.cscript['Close Request']);
+			cur_frm.add_custom_button(__('Cancel'), cur_frm.cscript['Cancel Request']);
+		}
+		frm.events.workflow_state(frm);
 	},
 	validate: function(frm, cdt, cdn) {
-		if (frm.doc.docstatus == 1 && frm.doc.workflow_state == "In Process") {
-			if (frm.doc.act_duration == 0) {
-				alert("Activity Duration cannot be 0");
+		var doc = frm.doc;
+		//alert ("From validate--> Docstatus : " + frm.doc.docstatus + "\n" + "workflow_state : " + frm.doc.workflow_state);
+		if (doc.__islocal) {
+			if (doc.est_start_date && doc.est_start_date < get_today()) {
+				alert("Estimated Start Date cannot be past Date");
 				frappe.validated = false;
-			} 
+			}
+			if (!doc.est_duration || doc.est_duration == 0) {
+				alert ("Estimated Activity Duration cannot be 0");
+				frappe.validated = false;
+			}
+			if (!doc.site_location || doc.site_location == "") {
+				alert ("Site location cannot be blank");
+				frappe.validated = false;
+			}
+			if (!doc.est_samples || doc.est_samples == 0) {
+				alert ("Estimated No of Samples cannot be 0");
+				frappe.validated = false;
+			}
+			if (doc.est_containers && doc.est_containers < doc.est_samples) {
+				alert ("Estimated No of Bottles cannot be less than No of Samples");
+				frappe.validated = false;
+			}
+		}
+		if (doc.workflow_state == "To Assign" && doc.docstatus == 0) {
+			if (doc.est_start_date && doc.est_start_date < get_today()) {
+				alert("Estimated Start Date cannot be past Date");
+				frappe.validated = false;
+			}
+			if (!doc.est_duration || doc.est_duration == 0) {
+				alert ("Estimated Activity Duration cannot be 0");
+				frappe.validated = false;
+			}
+			if (!doc.site_location || doc.site_location == "") {
+				alert ("Site location cannot be blank");
+				frappe.validated = false;
+			}
+			if (!doc.est_samples || doc.est_samples == 0) {
+				alert ("Estimated No of Samples cannot be 0");
+				frappe.validated = false;
+			}
+			if (doc.est_containers && doc.est_containers < doc.est_samples) {
+				alert ("Estimated No of Bottles cannot be less than No of Samples");
+				frappe.validated = false;
+			}
+
 		}
 	},
-	required_fields: function(frm, cdt, cdn) {
-		var doc=frm.doc;
-		var before_save = ((doc.__islocal) && (doc.workflow_state == "Draft")) ? 1 : 0;
-		var before_assign = ((doc.docstatus === 0) && (doc.workflow_state == "To Assign")) ? 1 : 0;
-		var doc_assigned = ((doc.docstatus === 1) && (doc.workflow_state == "In Process")) ? 1 : 0;
-		var doc_closed = ((doc.docstatus === 1) && (doc.workflow_state == "Closed")) ? 1 : 0;
-		var doc_cancelled = ((doc.docstatus === 2) && (doc.workflow_state == "Cancelled")) ? 1 : 0;
-		alert("before_save: " + before_save + "\n" + "before_assign: " + before_assign + "\n" + "doc_assigned: " + doc_assigned + "\n" + "doc_closed: " + doc_closed + "\n" + "doc_cancelled: " + doc_cancelled + "\n");
-
-		if (doc_closed || doc_cancelled) {
+	workflow_state: function(frm, cdt, cdn) {
+		//alert ("From workflow_state--> Docstatus : " + frm.doc.docstatus + "\n" + "workflow_state : " + frm.doc.workflow_state);
+		var doc = frm.doc;
+		if (doc.__islocal) {
+			frm.toggle_reqd("est_start_date", true);
+			frm.toggle_reqd("est_duration", true);
+			frm.toggle_reqd("site_location", true);
+			frm.toggle_reqd("est_samples", true);
+			frm.toggle_reqd("est_containers", true);
+		} else if (doc.docstatus == 0){
+			if (doc.workflow_state == "To Assign") {
+				frm.toggle_reqd("est_start_date", doc.workflow_state == "To Assign"? 1 : 0);
+				frm.toggle_reqd("est_duration", doc.workflow_state == "To Assign"? 1 : 0);
+				frm.toggle_reqd("site_location", doc.workflow_state == "To Assign"? 1 : 0);
+				frm.toggle_reqd("est_samples", doc.workflow_state == "To Assign"? 1 : 0);
+				frm.toggle_reqd("est_containers", doc.workflow_state == "To Assign"? 1 : 0);
+				frm.toggle_reqd("contact_no", doc.workflow_state == "To Assign"? 1 : 0);
+				frm.toggle_reqd("contact_name", doc.workflow_state == "To Assign"? 1 : 0);
+				frm.toggle_reqd("assigned_to", doc.workflow_state == "To Assign"? 1 : 0);
+				frm.toggle_reqd("req_remarks", doc.workflow_state == "To Assign"? 1 : 0);
+				frm.toggle_enable("sales_order", doc.workflow_state == "To Assign"? 0 : 1);
+			} else if (doc.workflow_state == "In Process") {
+				frm.toggle_enable("sales_order", doc.workflow_state == "In Process"? 0 : 1);
+				frm.toggle_enable("est_start_date", doc.workflow_state == "In Process"? 0 : 1);
+				frm.toggle_enable("est_duration", doc.workflow_state == "In Process"? 0 : 1);
+				frm.toggle_enable("site_location", doc.workflow_state == "In Process"? 0 : 1);
+				frm.toggle_enable("est_samples", doc.workflow_state == "In Process"? 0 : 1);
+				frm.toggle_enable("est_containers", doc.workflow_state == "In Process"? 0 : 1);
+				frm.toggle_enable("contact_name", doc.workflow_state == "In Process"? 0 : 1);
+				frm.toggle_enable("contact_no", doc.workflow_state == "In Process"? 0 : 1);
+				frm.toggle_enable("assigned_to", doc.workflow_state == "In Process"? 0 : 1);
+				frm.toggle_enable("req_remarks", doc.workflow_state == "In Process"? 0 : 1);
+				//frm.toggle_reqd("closer_date", doc.workflow_state == "In Process"? 1 : 0);
+				frm.toggle_reqd("act_start_date", doc.workflow_state == "In Process"? 1 : 0);
+				frm.toggle_reqd("act_duration", doc.workflow_state == "In Process"? 1 : 0);
+				frm.toggle_reqd("act_samples", doc.workflow_state == "In Process"? 1 : 0);
+				frm.toggle_reqd("act_containers", doc.workflow_state == "In Process"? 1 : 0);
+				frm.toggle_reqd("response_remarks", doc.workflow_state == "In Process"? 1 : 0);
+			}
+		} else {
 			frm.toggle_enable("closer_date", false);
 			frm.toggle_enable("act_start_date", false);
 			frm.toggle_enable("act_duration", false);
 			frm.toggle_enable("act_samples", false);
 			frm.toggle_enable("act_containers", false);
 			frm.toggle_enable("response_remarks", false);
-		} else {
-			frm.toggle_reqd("est_start_date", before_save);
-			frm.toggle_reqd("est_duration", before_save);
-			frm.toggle_reqd("site_location", before_save);
-			frm.toggle_reqd("est_samples", before_save);
-			frm.toggle_reqd("est_containers", before_save);
-			frm.toggle_reqd("contact_name", before_assign);
-			frm.toggle_reqd("contact_no", before_assign);
-			frm.toggle_reqd("assigned_to", before_assign);
-			frm.toggle_reqd("req_remarks", before_assign);
-			frm.toggle_reqd("closer_date", doc_assigned);
-			frm.toggle_reqd("act_start_date", doc_assigned);
-			frm.toggle_reqd("act_duration", doc_assigned);
-			frm.toggle_reqd("act_samples", doc_assigned);
-			frm.toggle_reqd("act_containers", doc_assigned);
-			frm.toggle_reqd("response_remarks", doc_assigned);
-		}
-	},
-	update_status: function(frm) {
-		var doc = frm.doc;
-		if (doc.__islocal) {frm.set_value("document_state", "Draft");}
+		} 
 
-		if (doc.docstatus === 0) {
-			if(doc.est_start_date && doc.est_duration > 0 && doc.site_location && doc.est_samples >0 && doc.est_containers >= doc.est_samples) {frm.set_value("document_state", "To Assign");}
-		}
-		if (doc.docstatus === 1) {
-			if(doc.assigned_to && doc.contact_name && doc.contact_no && doc.req_remarks && ) {frm.set_value("document_state", "In Process");}
-		}
-	}
+	},
 });
 
+cur_frm.cscript['Close Request'] = function(){
+	var dialog = new frappe.ui.Dialog({
+		title: "Close Request",
+		fields: [
+			{"fieldtype": "Date", "label": __("Actual Start Date"), "fieldname": "act_start_date", "reqd": 1 },
+			{"fieldtype": "Data", "label": __("Actual Activity Duration (in Days)"), "fieldname": "act_duration", "reqd": 1 },
+			{"fieldtype": "Data", "label": __("Closing Remarks"), "fieldname": "response_remarks", "reqd": 1 },
+			{"fieldtype": "Button", "label": __("Update"), "fieldname": "update"},
+		]
+	});
 
+	dialog.fields_dict.update.$input.click(function() {
+		var args = dialog.get_values();
+		//alert(args.act_start_date + " / " + args.act_duration);
+		if(!args) return;
+		return cur_frm.call({
+			method: "declare_req_closed",
+			doc: cur_frm.doc,
+			args: {act_start_date: args.act_start_date, act_duration: args.act_duration, response_remarks:args.response_remarks},
+			callback: function(r) {
+				if(r.exc) {
+					frappe.msgprint(__("There were errors."));
+					return;
+				}
+				dialog.hide();
+				cur_frm.refresh();
+			},
+			btn: this
+		})
+	});
+	dialog.show();
+}
+
+cur_frm.cscript['Cancel Request'] = function(){
+	var dialog = new frappe.ui.Dialog({
+		title: "Cancel Request",
+		fields: [
+			{"fieldtype": "Data", "label": __("Cancellation Remarks"), "fieldname": "response_remarks", "reqd": 1 },
+			{"fieldtype": "Button", "label": __("Update"), "fieldname": "update"},
+		]
+	});
+
+	dialog.fields_dict.update.$input.click(function() {
+		var args = dialog.get_values();
+		//alert(args.act_start_date + " / " + args.act_duration);
+		if(!args) return;
+		return cur_frm.call({
+			method: "declare_req_cancelled",
+			doc: cur_frm.doc,
+			args: {response_remarks:args.response_remarks},
+			callback: function(r) {
+				if(r.exc) {
+					frappe.msgprint(__("There were errors."));
+					return;
+				}
+				dialog.hide();
+				cur_frm.refresh();
+			},
+			btn: this
+		})
+	});
+	dialog.show();
+}
+
+
+/*
+cur_frm.cscript.close_sales_order(doc, dt, dn) {
+
+}
+
+*/
