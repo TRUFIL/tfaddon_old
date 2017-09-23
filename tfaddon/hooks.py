@@ -11,6 +11,8 @@ app_color = "yellow"
 app_email = "info@dgsol-in.com"
 app_license = "MIT"
 
+develop_version = '1.x.x-beta'
+
 # Includes in <head>
 # ------------------
 
@@ -119,3 +121,6 @@ app_license = "MIT"
 # 	"frappe.desk.doctype.event.event.get_events": "tfaddon.event.get_events"
 # }
 
+# Fixures
+# -------
+fixtures = ["Custom Field"]

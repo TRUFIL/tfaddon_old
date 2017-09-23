@@ -9,7 +9,7 @@
  "custom": 0, 
  "docstatus": 0, 
  "doctype": "DocType", 
- "document_type": "Document", 
+ "document_type": "Other", 
  "editable_grid": 0, 
  "engine": "InnoDB", 
  "fields": [
@@ -3516,7 +3516,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2017-07-31 11:52:10.872564", 
+ "modified": "2017-09-19 11:42:54.829758", 
  "modified_by": "Administrator", 
  "module": "Back Office", 
  "name": "Job Order", 

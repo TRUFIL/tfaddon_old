@@ -9,7 +9,7 @@
  "custom": 0, 
  "docstatus": 0, 
  "doctype": "DocType", 
- "document_type": "Document", 
+ "document_type": "Other", 
  "editable_grid": 1, 
  "engine": "InnoDB", 
  "fields": [
@@ -206,7 +206,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2017-08-17 16:19:45.720460", 
+ "modified": "2017-09-19 11:44:15.262658", 
  "modified_by": "Administrator", 
  "module": "TRUFIL Addon", 
  "name": "Services", 

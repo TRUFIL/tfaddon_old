@@ -11,17 +11,34 @@ frappe.ui.form.on('Sampling Request', {
 	},
 	refresh: function(frm, cdt, cdn) {
 		var doc = frm.doc;
-		alert("From refresh--> Docstatus : " + doc.docstatus + "\n" + "workflow_state : " + doc.workflow_state);
+		//alert("From refresh--> Docstatus : " + doc.docstatus + "\n" + "workflow_state : " + doc.workflow_state);
 		if(doc.docstatus == 1 && doc.workflow_state == 'In Process') {
 			cur_frm.add_custom_button(__('Close'), cur_frm.cscript['Close Request']);
 			cur_frm.add_custom_button(__('Cancel'), cur_frm.cscript['Cancel Request']);
 		}
+		frappe.call({
+			'method': 'frappe.client.get_list',
+			'args': {
+				'doctype': 'Samples',
+				'fields': ['name','sample_id','customer','eq_location','eq_make_serial',
+					'collection_date','status','bag_no'],
+				'filters': {'sampling_request':doc.name}
+			},
+			'callback': function(res) {
+				//console.log(res.message);
+				if (res.message) {
+					frm.set_df_property('list_of_samples', 'options', frappe.render(samples_table_template, {rows: res.message}));
+				} else {
+					frm.set_df_property('list_of_samples', 'options', '');
+				}
+				frm.refresh_field('list_of_samples');
+			}
+		});	
 		frm.events.workflow_state(frm);
 	},
 	validate: function(frm, cdt, cdn) {
 		var doc = frm.doc;
-		//alert ("From validate--> Docstatus : " + frm.doc.docstatus + "\n" + "workflow_state : " + frm.doc.workflow_state);
-		if (doc.__islocal) {
+		if (doc.__islocal || (doc.workflow_state == "To Assign" && doc.docstatus == 0)) {
 			if (doc.est_start_date && doc.est_start_date < get_today()) {
 				alert("Estimated Start Date cannot be past Date");
 				frappe.validated = false;
@@ -42,29 +59,6 @@ frappe.ui.form.on('Sampling Request', {
 				alert ("Estimated No of Bottles cannot be less than No of Samples");
 				frappe.validated = false;
 			}
-		}
-		if (doc.workflow_state == "To Assign" && doc.docstatus == 0) {
-			if (doc.est_start_date && doc.est_start_date < get_today()) {
-				alert("Estimated Start Date cannot be past Date");
-				frappe.validated = false;
-			}
-			if (!doc.est_duration || doc.est_duration == 0) {
-				alert ("Estimated Activity Duration cannot be 0");
-				frappe.validated = false;
-			}
-			if (!doc.site_location || doc.site_location == "") {
-				alert ("Site location cannot be blank");
-				frappe.validated = false;
-			}
-			if (!doc.est_samples || doc.est_samples == 0) {
-				alert ("Estimated No of Samples cannot be 0");
-				frappe.validated = false;
-			}
-			if (doc.est_containers && doc.est_containers < doc.est_samples) {
-				alert ("Estimated No of Bottles cannot be less than No of Samples");
-				frappe.validated = false;
-			}
-
 		}
 	},
 	workflow_state: function(frm, cdt, cdn) {
@@ -99,7 +93,6 @@ frappe.ui.form.on('Sampling Request', {
 				frm.toggle_enable("contact_no", doc.workflow_state == "In Process"? 0 : 1);
 				frm.toggle_enable("assigned_to", doc.workflow_state == "In Process"? 0 : 1);
 				frm.toggle_enable("req_remarks", doc.workflow_state == "In Process"? 0 : 1);
-				//frm.toggle_reqd("closer_date", doc.workflow_state == "In Process"? 1 : 0);
 				frm.toggle_reqd("act_start_date", doc.workflow_state == "In Process"? 1 : 0);
 				frm.toggle_reqd("act_duration", doc.workflow_state == "In Process"? 1 : 0);
 				frm.toggle_reqd("act_samples", doc.workflow_state == "In Process"? 1 : 0);
@@ -122,6 +115,7 @@ cur_frm.cscript['Close Request'] = function(){
 	var dialog = new frappe.ui.Dialog({
 		title: "Close Request",
 		fields: [
+			{"fieldtype": "Link", "label": __("Job Done By"), "fieldname": "job_done_by", "reqd": 1, "options":"Sampler Master" },
 			{"fieldtype": "Date", "label": __("Actual Start Date"), "fieldname": "act_start_date", "reqd": 1 },
 			{"fieldtype": "Data", "label": __("Actual Activity Duration (in Days)"), "fieldname": "act_duration", "reqd": 1 },
 			{"fieldtype": "Data", "label": __("Closing Remarks"), "fieldname": "response_remarks", "reqd": 1 },
@@ -136,7 +130,8 @@ cur_frm.cscript['Close Request'] = function(){
 		return cur_frm.call({
 			method: "declare_req_closed",
 			doc: cur_frm.doc,
-			args: {act_start_date: args.act_start_date, act_duration: args.act_duration, response_remarks:args.response_remarks},
+			args: {job_done_by:args.job_done_by, act_start_date: args.act_start_date, 
+				act_duration: args.act_duration, response_remarks:args.response_remarks},
 			callback: function(r) {
 				if(r.exc) {
 					frappe.msgprint(__("There were errors."));
@@ -182,10 +177,31 @@ cur_frm.cscript['Cancel Request'] = function(){
 	dialog.show();
 }
 
-
-/*
-cur_frm.cscript.close_sales_order(doc, dt, dn) {
-
-}
-
-*/
+var samples_table_template = `
+	<div class="form-group">
+		<div class="col-xs-12">
+			<table class="table table-bordered" style="width: 100%; font-size:x-small">
+				<caption>List of Samples</caption>
+				<tbody>
+					<tr>
+						<th>ID</th>
+						<th>Bag No</th>
+						<th>Location</th>
+						<th>Equipment</th>
+						<th>Collection Date</th>
+						<th>Status</th>
+					</tr>
+					{% for row in rows %}
+					<tr>
+						<td><a href="desk#Form/Samples/{{ row.name }}" target="_blank">{{ row.sample_id }}</a></td>
+						<td>{{ row.bag_no }}</td>
+						<td>{{ row.eq_location }}</td>
+						<td>{{ row.eq_make_serial }}</td>
+						<td>{{ row.collection_date }}</td>
+						<td>{{ row.status }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div> 
+	</div>`;

@@ -15,7 +15,7 @@ class Locations(Document):
 	# before inserting or updating
 	def validate(self):
 		self.validate_mandatory_field()
-		#self.update_readonly_fields()
+		self.generate_title()
 	
 	# after saving
 	def on_update(self):
@@ -34,16 +34,27 @@ class Locations(Document):
 
 	# validate all the required fields are properly filled up
 	def validate_mandatory_field(self):
+		if not self.area:
+			frappe.throw(_("Plant is Required. Not saved..."))
+
+		if not self.location:
+			frappe.throw(_("Substation is Required. Not saved..."))
+
+		if not self.cd:
+			frappe.throw(_("Equipment Designation is Required. Not saved..."))
+
 		if not (self.ccd):
-			msgprint(_("Owner’s Location ID is missing. Please update ASAP."))
+			frappe.msgprint(_("Owner’s Location ID is missing. Please update ASAP."))
+
+
 			
 	# update all the derived fields 
-	def update_readonly_fields(self):
+	def generate_title(self):
+		if (self.area and self.location and self.cd):
+				self.title = self.loc_owner + " | " + self.area.strip() + " | " + self.location.strip() + " | " + self.cd.strip()
+		else:
+			self.title = self.loc_owner + " | " + self.location.strip() + " | " + self.cd.strip()
+
 		if (self.ccd):
-			self.title = self.ccd.strip()
-		elif (self.area and self.location and self.cd):
-				self.title = self.owner + "|" + self.area.strip() + "|" + self.location.strip() + "|" + self.cd.strip()
-		elif (self.location and self.cd):
-			self.title = self.owner + self.location.strip() + "|" + self.cd.strip()
-			
+			self.title += " | " + self.ccd.strip()
 

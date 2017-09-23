@@ -37,9 +37,6 @@ class Equipments(Document):
 		pass
 
 	def validate_mandatory_field(self):
-		if not self.owner_eq_id:
-			self.owner_eq_id = "NS"
-
 		if not self.eq_manufacturer:
 			frappe.throw(_("Manufacturer is required. Select 'Unknown' if not available"))
 
@@ -70,7 +67,7 @@ class Equipments(Document):
 			if (not self.voltage_class or self.voltage_class == "NA"):
 				frappe.throw(_("Specify appropriate Voltage Class"))
 
-			if (self.eq_group == "TRANSFORMER" or self.eq_group == "POTENTIAL"):
+			if (self.eq_group == "TRANSFORMER" or self.eq_group == "INSTRUMENT"):
 				if (not self.eq_capacity or self.eq_capacity == 0):
 					frappe.throw(_("Rating is Mandatory"), frappe.MandatoryError)
 				if (not self.eq_pv or self.eq_pv == 0):
@@ -87,7 +84,7 @@ class Equipments(Document):
 			elif (self.eq_group == "REACTOR"):
 				if (not self.eq_capacity or self.eq_capacity == 0):
 					frappe.throw(_("Rating is Mandatory"), frappe.MandatoryError)
-			elif (self.eq_group == "BUSHING"):
+			elif (self.eq_group == "OCB"):
 				if (not self.eq_pc or self.eq_pc == 0):
 					frappe.throw(_("Primary current is Mandatory"), frappe.MandatoryError)
 			else:
@@ -107,26 +104,25 @@ class Equipments(Document):
 			self.eq_oil_qty = 0
 
 	def update_read_only_fields(self):
-		# Update Equipment Title
 		self.title = self.eq_manufacturer + '-' + self.eq_sl_no
 		self.capacity = self.get_capacity()
 		self.voltage = self.get_voltage()
 		self.current = self.get_current()
 
 	def get_capacity(self):
-		if (self.eq_group == "POTENTIAL" or self.eq_group == "CURRENT"):
+		if (self.eq_group == "INSTRUMENT" or self.eq_group == "CURRENT"):
 			unit = " VA"
 		elif (self.eq_group == "REACTOR"):
 			unit = " kVAr"
 		else:
 			unit = " kVA"
 
-		if (self.eq_group != "CONTAINER" and self.eq_group != "BUSHING"):
+		if (self.eq_group != "CONTAINER" and self.eq_group != "OCB"):
 			if (self.eq_capacity):
 				capacity = str(self.eq_capacity) + unit
 			else:
 				capacity = "NS"
-		elif (self.eq_group == "BUSHING"):
+		elif (self.eq_group == "OCB"):
 			capacity = str(self.eq_pc) + " Amps"
 
 		else:
@@ -135,13 +131,15 @@ class Equipments(Document):
 		return capacity
 		
 	def get_voltage(self):
-		if(self.eq_group in ["CURRENT","REACTOR","BUSHING" ,"CONTAINER"]):
+		if(self.eq_group in ["CURRENT","REACTOR","OCB" ,"CONTAINER"]):
 			voltage = "NA"
 		else:
 			if (self.eq_pv and self.eq_sv and self.eq_tv):
-				voltage = str(self.eq_pv) + "/" + str(self.eq_sv) + ("/" + str(self.eq_tv)) + " Volts"
+				#voltage = str(self.eq_pv) + "/" + str(self.eq_sv) + ("/" + str(self.eq_tv)) + " Volts"
+				voltage = "/".join([str(self.eq_pv),str(self.eq_sv),str(self.eq_tv)]) + " Volts"
 			elif (self.eq_pv and self.eq_sv):
-				voltage = str(self.eq_pv) + "/" + str(self.eq_sv) + " Volts"
+				#voltage = str(self.eq_pv) + "/" + str(self.eq_sv) + ("/" + str(self.eq_tv)) + " Volts"
+				voltage = "/".join([str(self.eq_pv),str(self.eq_sv)]) + " Volts"
 			elif (self.eq_pv):
 				voltage = str(self.eq_pv) + " Volts"
 			else:
@@ -150,7 +148,7 @@ class Equipments(Document):
 		return voltage
 
 	def get_current(self):
-		if(self.eq_group in ["CURRENT","BUSHING"]):
+		if(self.eq_group in ["CURRENT","OCB"]):
 			if (self.eq_pc and self.eq_sc):
 				current = str(self.eq_pc) + "/" + str(self.eq_sc) + " Amps"
 			elif (self.eq_pc):
@@ -173,38 +171,3 @@ class Equipments(Document):
 
 		return phases
 
-def get_eq_info_template():
-	info_template = """
-	<div>
-
-	</div>
-"""
-
-
-"""
-def get_default_equipment_info_template():
-	return '''
-{%- if eq_info["Capacity"] -%}'''+_('Capacity')+''': {{ eq_info["Capacity"] }}<br>{%- endif -%}
-{%- if eq_info["Voltage"] -%}'''+_('Voltage')+''': {{ eq_info["Voltage"] }}<br>{%- endif -%}
-{%- if eq_info["Voltage Ratio"] -%}'''+_('Voltage Ratio')+''': {{ eq_info["Voltage Ratio"] }}<br>{%- endif -%}
-{%- if eq_info["Current"] -%}'''+_('Current')+''': {{ eq_info["Current"] }}<br>{%- endif -%}
-{%- if eq_info["Current Ratio"] -%}'''+_('Current Ratio')+''': {{ eq_info["Current Ratio"] }}<br>{%- endif -%}
-{%- if eq_info["No of Phases"] -%}'''+_('No of Phases')+''': {{ eq_info["No of Phases"] }}<br>{%- endif -%}
-
-
-	'''
-"""
-"""
-@frappe.whitelist()
-def get_default_address_template():
-	'''Get default address template (translated)'''
-	return '''{{ address_line1 }}<br>{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}\
-{{ city }}<br>
-{% if state %}{{ state }}<br>{% endif -%}
-{% if pincode %}{{ pincode }}<br>{% endif -%}
-{{ country }}<br>
-{% if phone %}'''+_('Phone')+''': {{ phone }}<br>{% endif -%}
-{% if fax %}'''+_('Fax')+''': {{ fax }}<br>{% endif -%}
-{% if email_id %}'''+_('Email')+''': {{ email_id }}<br>{% endif -%}'''
-
-"""
