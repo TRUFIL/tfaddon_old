@@ -167,8 +167,8 @@
           <th style="width:22%; height:50px">Oil Screening Tests</th>
           <th style="width:12%;text-align:center;">Unit Of Measurement</th>
           <th style="width:17%;text-align:center;">Test Result</th>
-          <th style="width:17%;text-align:center;">Limits as per</th>
-          <th colspan="2" style="text-align:left;"> Interpretation</th></tr>
+          <th style="width:17%;text-align:center;">Limits as per<br>IS 1866 (Table-2)</th>
+          <th colspan="2" style="text-align:left;">Opinions and Interpretations</th></tr>
         <tr><td style="text-align:left;">Appearence</td>
           <td colspan="3"></td>
           <td colspan="2" rowspan="15" style="text-align:left;"><b>{{ doc.ost_interpretation }}</b></td></tr>
@@ -182,7 +182,7 @@
         <tr><td style="text-align:left;text-indent: 10px;">Odour</td>
           <td>--</td>
           <td><b>{{ doc.odour }}</b></td></tr>
-        <tr><td style="text-align:left;">Density at 29.5 <sup>o</sup>C</td>
+        <tr><td style="text-align:left;">Density at RT</td>
           <td>g/cm<sup>3</sup></td>
           <td><b>{{ doc.ost_density }}</b></td>
           <td>{{ _("0.890 Max") }}</td></tr>
@@ -211,14 +211,14 @@
           <td><b>{{ doc.ost_ift }}</b></td>
           <td>{{ _("0.015 Min") }}</td></tr>
         <tr><td style="text-align:left;">Water Content</td>
-          <td>ppm</td>
+          <td>mg/kg</td>
           <td><b>{{ doc.ost_wc }}</b></td>
           <td>{{ _("40 Max") }}</td></tr>
         <tr><td style="text-align:left;">Neutralisation Value</td>
           <td>mg KOH/g</td>
           <td><b>{{ doc.ost_nv }}</b></td>
           <td>{{ _("0.3 Max") }}</td></tr>
-        <tr><td style="text-align:left;">Sediment and Sludge</td>
+        <tr><td style="text-align:left;">Sediment and Sludge (w/w)</td>
           <td>%</td>
           <td><b>{{ doc.ost_ss }}</b></td>
           <td>{{ _("No Presence") }}</td></tr>
@@ -250,69 +250,69 @@
     <table class="table-bordered text-center" style="width:100%;">
       <caption></caption>
       <tbody>
-        <tr><th style="width:22%; height:50px">Dissolved Gas Analysis</th>
+        <tr><th style="width:22%; height:50px">Dissolved Gas Analysis<br>IS 9434</th>
           <th style="width:12%;text-align:center;">Unit Of Measurement</th>
           <th style="width:17%;text-align:center;">Test Result</th>
-          <th style="width:17%;text-align:center;">Limits as per</th>
-          <th colspan="2" style="text-align:left;"> Interpretation</th></tr>
+          <th style="width:17%;text-align:center;">Limits as per<br>IS 10593</th>
+          <th colspan="2" style="text-align:left;">Opinions and Interpretations</th></tr>
         <tr><td style="text-align:left;">Total Gas Content<br><small>(at ambient atm. press)</small></td>
           <td>% v/v</td>
           <td><b>{{ doc.dga_tgc }}</b></td>
           <td>{{ _("--") }}</td>
           <td rowspan="13" colspan="2" style="text-align:left;"><b>{{ doc.dga_interpretation }}</b></td></tr>
-        <tr><td style="text-align:left;" colspan="3">Concentration of component gases (in v/v of oil) {{ _("(in ppm)") }}</td>
+        <tr><td style="text-align:left;" colspan="3">Concentration of component gases</td>
           <td></td></tr>
         <tr><td style="text-align:left;text-indent: 10px;">Hydrogen (H<sub>2</sub>)</td>
-          <td>ppm</td>
+          <td>&mu;l/l</td>
           <td><b>{{ doc.dga_h2 }}</b></td>
           <td>{{ _("60 Max") }}</td></tr>
         <tr><td style="text-align:left;text-indent: 10px;">Oxygen (O<sub>2</sub>)</td>
-          <td>ppm</td>
+          <td>&mu;l/l</td>
           <td><b>{{ doc.dga_o2 }}</b></td>
           <td>{{ _("--") }}</td></tr>
         <tr><td style="text-align:left;text-indent: 10px;">Nitrogen (N<sub>2</sub>)</td>
-          <td>ppm</td>
+          <td>&mu;l/l</td>
           <td><b>{{ doc.dga_n2 }}</b></td>
           <td>{{ _("--") }}</td></tr>
         <tr><td style="text-align:left;text-indent: 10px;">Carbon Monoxide (CO)</td>
-          <td>ppm</td>
+          <td>&mu;l/l</td>
           <td><b>{{ doc.dga_co }}</b></td>
           <td>{{ _("540 Max") }}</td></tr>
         <tr><td style="text-align:left;text-indent: 10px;">Methane (CH<sub>4</sub>)</td>
-          <td>ppm</td>
+          <td>&mu;l/l</td>
           <td><b>{{ doc.dga_ch4 }}</b></td>
           <td>{{ _("40 Max") }}</td></tr>
         <tr><td style="text-align:left;text-indent: 10px;">Carbon Dioxide (CO<sub>2</sub>)</td>
-          <td>ppm</td>
+          <td>&mu;l/l</td>
           <td><b>{{ doc.dga_co2 }}</b></td>
           <td>{{ _("5100 Max") }}</td></tr>
         <tr><td style="text-align:left;text-indent: 10px;">Ethane (C<sub>2</sub>H<sub>6</sub>)</td>
-          <td>ppm</td>
+          <td>&mu;l/l</td>
           <td><b>{{ doc.dga_c2h6 }}</b></td>
           <td>{{ _("50 Max") }}</td></tr>
         <tr><td style="text-align:left;text-indent: 10px;">Ethylene (C<sub>2</sub>H<sub>4</sub>)</td>
-          <td>ppm</td>
+          <td>&mu;l/l</td>
           <td><b>{{ doc.dga_c2h4 }}</b></td>
           <td>{{ _("60 Max") }}</td></tr>
         <tr><td style="text-align:left;text-indent: 10px;">Acetelene (C<sub>2</sub>H<sub>2</sub>)</td>
-          <td>ppm</td>
+          <td>&mu;l/l</td>
           <td><b>{{ doc.dga_c2h2 }}</b></td>
           <td>{{ _("3 Max") }}</td></tr>
         <tr><td style="text-align:left;text-indent: 10px;">Propane (C<sub>3</sub>H<sub>8</sub>)</td>
-          <td>ppm</td>
+          <td>&mu;l/l</td>
           <td><b>{{ doc.dga_c3h8 }}</b></td>
           <td>{{ _("--") }}</td></tr>
         <tr><td style="text-align:left;text-indent: 10px;">Propylene (C<sub>3</sub>H<sub>6</sub>)</td>
-          <td>ppm</td>
+          <td>&mu;l/l</td>
           <td><b>{{ doc.dga_c3h6 }}</b></td>
           <td>{{ _("--") }}</td></tr>
         <tr><td style="text-align:left;">Total Dissolved Combustible Gases (TDCG)</td>
-          <td>ppm</td>
+          <td>&mu;l/l</td>
           <td><b>{{ doc.dga_tdcg }}</b></td>
           <td>{{ _("--") }}</td>
           <td style="width:20%;text-align:left;" rowspan="2"> Recommended Frequency </td>
           <td style="width:12%;text-align:left;" rowspan="2"><b>{{ doc.dga_frequency }}</b></td></tr>
-        <tr><td style="text-align:left;">TDCG/TCG</td>
+        <tr><td style="text-align:left;">TDCG / TCG</td>
           <td>%</td>
           <td><b>{{ doc.dga_tdcg_tcg }}</b></td>
           <td>{{ _("--") }}</td></tr>
@@ -329,38 +329,38 @@
     <table class="table-bordered text-center" style="width:100%;">
       <caption></caption>
       <tbody>
-        <tr><th style="width:22%; height:50px">Furan Analysis</th>
+        <tr><th style="width:22%; height:50px">Furan Analysis<br>ASTM D5837</th>
           <th style="width:12%;text-align:center;">Unit Of Measurement</th>
           <th style="width:17%;text-align:center;">Test Result</th>
-          <th style="width:17%;text-align:center;">Limits as per</th>
-          <th colspan="2" style="text-align:left;"> Interpretation</th></tr>
+          <th style="width:17%;text-align:center;">Limits<sup>#</sup></th>
+          <th colspan="2" style="text-align:left;">Opinions and Interpretations</th></tr>
         <tr><td style="text-align:left;">5-Hydroxymethyle-2-Furfural</td>
-          <td>ppm</td>
+          <td>mg/kg</td>
           <td><b>{{ doc.furan_5h2f }}</b></td>
-          <td></td>
+          <td>--</td>
           <td colspan="2" rowspan="4" style="text-align:left;"><b>{{ doc.furan_interpretation }}</b></td></tr>
         <tr><td style="text-align:left;">2-Furfurrol</td>
-          <td>ppm</td>
+          <td>mg/kg</td>
           <td><b>{{ doc.furan_2f }}</b></td>
-          <td></td></tr>
+          <td>--</td></tr>
         <tr><td style="text-align:left;">2-Furfural</td>
-          <td>ppm</td>
+          <td>mg/kg</td>
           <td><b>{{ doc.furan_2fa }}</b></td>
-          <td></td></tr>
+          <td>--</td></tr>
         <tr><td style="text-align:left;">2-Acetylfuran</td>
-          <td>ppm</td>
+          <td>mg/kg</td>
           <td><b>{{ doc.furan_2a }}</b></td>
-          <td></td></tr>
+          <td>--</td></tr>
         <tr><td style="text-align:left;">5-Methyl-2-Furfural</td>
-          <td>ppm</td>
+          <td>mg/kg</td>
           <td><b>{{ doc.furan_5m2f }}</b></td>
-          <td></td>
+          <td>--</td>
           <td style="width:20%;text-align:left;" rowspan="2"> Recommended Frequency </td>
           <td style="width:12%;text-align:left;" rowspan="2"><b>{{ doc.fruan_frequency }}</b></td></tr>
         <tr><td style="text-align:left;">Total Furan Content</td>
-          <td>ppm</td>
+          <td>mg/kg</td>
           <td><b>{{ doc.furan_tfc }}</b></td>
-          <td></td></tr>
+          <td>292</td></tr>
       </tbody>
     </table>
   </div>
@@ -370,20 +370,22 @@
 <!-- Over all Report Footer -->
 <div class="row section-break" style="font-size:x-small;">
   <div class="col-xs-12">
-    <table class="text-left" style="width:100%;">
-      <caption>Summary</caption>
+    <br><br>
+    <table class="table-bordered text-left" style="width:100%;">
       <tbody>
-        <tr><td>Recommended Action: <b>{{ doc.recommendation }}</b></td></tr>
+        <tr><th>Recommendations:</th></tr>
+        <tr><td><b>{{ doc.recommendation }}</b></td></tr>
       </tbody>
     </table>
     <table class="text-left" style="width:100%;">
-      <caption>General Remarks</caption>
+      <caption><b>Remarks</b></caption>
       <tbody>
         <tr><td style="font-size:x-small;"><ol>
           <li>Test Results pertain only to the sample submitted and tested. &nbsp;&nbsp;</li>
-          <li> The test report shall not be reproduced without written approval of TRU-FIL Limited. &nbsp;&nbsp;</li>
-          <li> * marked tests/standards are not in the scope of NABL accreditation. &nbsp;&nbsp;</li>
-          <li> NT: Not Tested, ND: Not Detected, NS: Not Specified, NA: Not Applicable, --: Not Available</li></td></tr>
+          <li>The test report shall not be reproduced, except in full, without written approval of TRU-FIL Limited. &nbsp;&nbsp;</li>
+          <li>* marked tests/standards are not in the scope of NABL accreditation. &nbsp;&nbsp;</li>
+          <li>NT: Not Tested, ND: Not Detected, NS: Not Specified, NA: Not Applicable, --: Not Available</li>
+          <li># Reference:- An Introduction of the Half-Century Transformer by The Transformer Maintenance Institute, SD Myers Co., 2002</li></td></tr>
       </tbody>
     </table>
   </div>
@@ -399,26 +401,19 @@
       <caption>Testing Environment</caption>
       <tbody>
         <tr><th style="width:20%;">Oil Paramenters</th>
-          <th style="width:15%;">Test Methods</th>
-          <th style="width:15%;">Test Standards</th>
-          <th style="width:50%;">Description</th></tr>
+          <th style="width:20%;">Test Standards</th>
+          <th style="width:60%;">Description</th></tr>
         <tr><td>Appearance</td>
           <td>IS 335</td>
-          <td></td>
           <td>Visual Check</td></tr>
-        <tr><td rowspan="2">Colour</td>
-          <td rowspan="2">6.1(c) of IS 1866</td>
-          <td></td>
+        <tr><td>Colour</td>
+          <td>6.1(c) of IS 1866</td>
           <td>ASTM Scale (ref. ASTM D1500)</td></tr>
-        <tr><td></td>
-          <td>Pt-Co Scale (ref. ASTM D1209), Hazen Units</td></tr>
         <tr><td>Density</td>
           <td>IS 1448 [P:16]</td>
-          <td></td>
           <td>Range of Hydrometers:0.80-0.85 g/cm<sup>3</sup> &amp; 0.85-0.90 g/cm<sup>3</sup> </td></tr>
         <tr><td>Specific Resistance</td>
           <td>IS 6103</td>
-          <td></td>
           <td rowspan="2">
             <ul>
               <li>Type of test cell: Flow through cell with solenoid valve</li>
@@ -428,11 +423,9 @@
             </ul>
           </td></tr>
         <tr><td>Dielectric Dissipation Factor</td>
-          <td>IS 6262</td>
-          <td></td></tr>
+          <td>IS 6262</td></tr>
         <tr><td>Electric Strength</td>
           <td>IS 6792</td>
-          <td></td>
           <td>
             <ul>
               <li>Test Cell: as per Fig.2 of IS 6792, Gap: 2.50 ± 0.01 mm</li>
@@ -443,31 +436,24 @@
           </td></tr>
         <tr><td>Interfacial Tension (against water)</td>
           <td>IS 6104</td>
-          <td></td>
           <td>Platinum Ring Method</td></tr>
         <tr><td>Water Content</td>
           <td>IS 13567</td>
-          <td></td>
           <td>Coulometric Titration method using Karl Fischer reagent</td></tr>
         <tr><td>Neutralisation Value</td>
           <td>IS 1448 [P:2]</td>
-          <td></td>
           <td>Automatic Potentiometric Titrator</td></tr>
         <tr><td>Sediments &amp; Sludge</td>
           <td>Annex-A of IS 1866</td>
-          <td></td>
           <td>Method as per standard</td></tr>
         <tr><td>Flash Point</td>
           <td>IS 1448 [P:21]</td>
-          <td></td>
           <td>Pensky-Martens Closed Cup Method</td></tr>
         <tr><td>* Fire Point</td>
-          <td>* ISO 2592</td>
-          <td></td>
+          <td>* IS 1448 [P:69]</td>
           <td>Cleveland Open Cup Method</td></tr>
         <tr><td>* Kinematic Viscosity</td>
           <td>* IS 1448 [P:25]</td>
-          <td></td>
           <td>U-Tube Viscometer</td></tr>
       </tbody>
     </table>
@@ -475,12 +461,10 @@
       <caption></caption>
       <tbody>
         <tr><th style="width:20%;">Oil Paramenters</th>
-          <th style="width:15%;">Test Methods</th>
-          <th style="width:15%;">Test Standards</th>
-          <th style="width:50%;">Description</th></tr>
+          <th style="width:20%;">Test Standards</th>
+          <th style="width:60%;">Description</th></tr>
         <tr><td>Disolved Gas Analysis</td>
           <td>IS 3494</td>
-          <td></td>
           <td>Applicable to Equipment in Service</td></tr>
       </tbody>
     </table>
@@ -488,13 +472,13 @@
       <caption></caption>
       <tbody>
         <tr><th style="width:20%;">Oil Paramenters</th>
-          <th style="width:15%;">Test Methods</th>
-          <th style="width:15%;">Test Standards</th>
-          <th style="width:50%;">Description</th></tr>
+          <th style="width:20%;">Test Standards</th>
+          <th style="width:60%;">Description</th></tr>
         <tr><td>Furan Analysis</td>
           <td>ASTM D5837</td>
-          <td></td>
-          <td><ul><li>Solid-phase extraction method</li><li>Standard callibration solution.</li></td></tr>
+          <td><ul>
+            <li>Solid-phase extraction method</li>
+            <li>Standard calibration solution.</li></ul></td></tr>
       </tbody>
     </table>
     <table class="table" style="width:100%;">
@@ -518,7 +502,7 @@
     <table style="width: 100%;" class="table-condensed">
       <tbody>
         <tr>
-          <td>Tested By: _________________________ </td>
+          <td>Prepared By: _________________________ </td>
           <td class="text-right">Approved By:  _________________________ </td>
         </tr>
       </tbody>
