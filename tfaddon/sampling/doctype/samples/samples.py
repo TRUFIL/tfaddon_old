@@ -35,13 +35,11 @@ class Samples(TFStatusUpdater):
 		elif self.has_open_job_order():
 			self.status = "In Process"
 		elif self.has_complete_details():
-			self.status = "Verified"
+			self.status = "Received"
 			if self.sample_id[0:6] != 'TL/SM/':
 				self.sample_id = frappe.model.naming.make_autoname("TL/SM/.YY./", "Samples")
-		elif self.has_receipt_details():
-			self.status = "Received"
-		elif self.has_dispatch_details():
-			self.status = "Dispatched"
+		elif self.has_verification_details():
+			self.status = "Verified"
 
 	def on_update_after_submit(self):
 		#self.update_child_doc_status()
@@ -56,14 +54,14 @@ class Samples(TFStatusUpdater):
 	def validate(self):
 		self.validate_mandatory()
 
-	def has_complete_details(self):
-		if self.has_receipt_details() and self.equipment and self.location:
+	def has_verification_details(self):
+		if self.equipment and self.location:
 			return 1
 		else:
 			return 0
 
-	def has_receipt_details(self):
-		if (self.receipt_date and self.material and self.laboratory and self.receipt_condition):
+	def has_complete_details(self):
+		if (self.has_verification_details() and self.receipt_date and self.material and self.laboratory and self.receipt_condition):
 			return 1
 		else:
 			return 0

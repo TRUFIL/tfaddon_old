@@ -49,9 +49,9 @@ frappe.ui.form.on('Samples', {
 		//refresh_field("status");
 		if(doc.docstatus == 1) {
 			/*if ((doc.collected_by == "Customer" && doc.status == 'Collected') || (doc.collected_by == "TRUFIL" && doc.status == 'Dispatched')) {
-				cur_frm.add_custom_button(__('Receive'), cur_frm.cscript['Receive Samples']);
+				cur_frm.add_custom_button(__('Verify'), cur_frm.cscript['Verify Samples']);
 			}*/
-			if ((doc.status == 'Collected') || (doc.status == 'Dispatched')) {
+			if (doc.status == 'Verified') {
 				cur_frm.add_custom_button(__('Receive'), cur_frm.cscript['Receive Samples']);
 			}
 			if (doc.status == 'Completed') {
@@ -284,14 +284,24 @@ frappe.ui.form.on('Samples', {
 		frm.refresh_field('loc_details_html');
 	},
 	required_fields: function(frm, cdt, cdn) {
+		var doc = frm.doc;
+		var to_be_edited = (doc.status == "Draft");
+		var to_be_verified = ((doc.collected_by == "Customer" && doc.status == 'Collected') || (doc.collected_by == "TRUFIL" && doc.status == 'Dispatched'));
 		var sf = ["collection_date","smp_source","smp_type","smp_point","smp_condition",
 			"weather_condition","eq_owner","sampler_remarks"];
 			
-		if (frm.doc.__islocal || frm.doc.docstatus == 0) {
+		if (doc.__islocal || doc.docstatus == 0) {
 			for (i = 0; i < sf.length; i++) {
-				frm.toggle_reqd(sf[i], frm.doc.status == "Draft"? 1: 0);
+				frm.toggle_reqd(sf[i], to_be_edited? 1: 0);
 			}
 		}
+
+		if (doc.docstatus == 1) {
+			frm.toggle_reqd("location", to_be_verified? 1: 0);
+			frm.toggle_reqd("equipment", to_be_verified? 1: 0);
+		}
+
+
 		frm.events.collected_by(frm);
 		frm.events.loc_not_in_list(frm);
 		frm.events.eq_not_in_list(frm);
@@ -420,6 +430,10 @@ var loc_template = `
 var blank_template = `
 	<div></div>
 	`;
+
+cur_frm.cscript['Verify Samples'] = function() {
+
+}
 
 cur_frm.cscript['Receive Samples'] = function() {
 	var dialog = new frappe.ui.Dialog({

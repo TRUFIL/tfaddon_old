@@ -7,7 +7,7 @@ from frappe.desk.reportview import get_match_cond, get_filters_cond
 from frappe.utils import nowdate
 from collections import defaultdict
 
-__version__ = '1.2.1'
+__version__ = '1.2.2'
 __title__ = "TRUFIL Addon"
 
 # Function to generate unique serial number
