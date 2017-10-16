@@ -11,29 +11,13 @@ frappe.ui.form.on('Sampling Request', {
 	},
 	refresh: function(frm, cdt, cdn) {
 		var doc = frm.doc;
-		//alert("From refresh--> Docstatus : " + doc.docstatus + "\n" + "workflow_state : " + doc.workflow_state);
 		if(doc.docstatus == 1 && doc.workflow_state == 'In Process') {
 			cur_frm.add_custom_button(__('Close'), cur_frm.cscript['Close Request']);
 			cur_frm.add_custom_button(__('Cancel'), cur_frm.cscript['Cancel Request']);
 		}
-		frappe.call({
-			'method': 'frappe.client.get_list',
-			'args': {
-				'doctype': 'Samples',
-				'fields': ['name','sample_id','customer','eq_location','eq_make_serial',
-					'collection_date','status','bag_no'],
-				'filters': {'sampling_request':doc.name}
-			},
-			'callback': function(res) {
-				//console.log(res.message);
-				if (res.message) {
-					frm.set_df_property('list_of_samples', 'options', frappe.render(samples_table_template, {rows: res.message}));
-				} else {
-					frm.set_df_property('list_of_samples', 'options', '');
-				}
-				frm.refresh_field('list_of_samples');
-			}
-		});	
+		if (!frm.doc.__islocal) {
+			frm.events.get_sample_list(frm);
+		}
 		frm.events.workflow_state(frm);
 	},
 	validate: function(frm, cdt, cdn) {
@@ -60,6 +44,26 @@ frappe.ui.form.on('Sampling Request', {
 				frappe.validated = false;
 			}
 		}
+	},
+	get_sample_list: function(frm) {
+		frappe.call({
+			'method': 'frappe.client.get_list',
+			'args': {
+				'doctype': 'Samples',
+				'fields': ['name','sample_id','customer','loc_area','loc_location','loc_cd',
+					'eq_make','eq_serial','collection_date','status','bag_no','laboratory'],
+				'filters': {'sampling_request':frm.doc.name}
+			},
+			'callback': function(res) {
+				console.log(res.message);
+				if (res.message) {
+					frm.set_df_property('list_of_samples', 'options', frappe.render(samples_table_template, {rows: res.message}));
+				} else {
+					frm.set_df_property('list_of_samples', 'options', frappe.render(samples_empty_template, {rows: []}));						
+				}
+			}
+		});	
+		frm.refresh_field('list_of_samples');
 	},
 	workflow_state: function(frm, cdt, cdn) {
 		//alert ("From workflow_state--> Docstatus : " + frm.doc.docstatus + "\n" + "workflow_state : " + frm.doc.workflow_state);
@@ -180,28 +184,40 @@ cur_frm.cscript['Cancel Request'] = function(){
 var samples_table_template = `
 	<div class="form-group">
 		<div class="col-xs-12">
+			{% if not rows %}
+			<p>No Samples...</p>
+			{% else %}
 			<table class="table table-bordered" style="width: 100%; font-size:x-small">
 				<caption>List of Samples</caption>
 				<tbody>
 					<tr>
-						<th>ID</th>
-						<th>Bag No</th>
+						<th>Sample ID</th>
+						<th>Collection Date</th>
 						<th>Location</th>
 						<th>Equipment</th>
-						<th>Collection Date</th>
+						<th>Destination Lab</th>
 						<th>Status</th>
 					</tr>
 					{% for row in rows %}
 					<tr>
 						<td><a href="desk#Form/Samples/{{ row.name }}" target="_blank">{{ row.sample_id }}</a></td>
-						<td>{{ row.bag_no }}</td>
-						<td>{{ row.eq_location }}</td>
-						<td>{{ row.eq_make_serial }}</td>
 						<td>{{ row.collection_date }}</td>
+						<td>{{ row.loc_area }}/{{ row.loc_location }}/{{ row.loc_cd }}</td>
+						<td>{{ row.eq_make }}/{{ row.eq_serial }}</td>
+						<td>{{ row.laboratory }}</td>
 						<td>{{ row.status }}</td>
 					</tr>
 					{% endfor %}
 				</tbody>
 			</table>
+			{% endif %}
 		</div> 
 	</div>`;
+
+var samples_empty_template = `
+	<div class="form-group">
+		<div class="col-xs-12">
+			<p>No Samples found...</p> 
+		</div> 
+	</div>`;
+

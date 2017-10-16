@@ -24,7 +24,6 @@ class Samples(TFStatusUpdater):
 		self.status = "Collected"
 
 	def on_submit(self):
-		#self.update_child_doc_status()
 		update_container_status(self.name,self.status)
 
 	def before_update_after_submit(self):
@@ -36,13 +35,11 @@ class Samples(TFStatusUpdater):
 			self.status = "In Process"
 		elif self.has_complete_details():
 			self.status = "Received"
-			if self.sample_id[0:6] != 'TL/SM/':
-				self.sample_id = frappe.model.naming.make_autoname("TL/SM/.YY./", "Samples")
-		elif self.has_verification_details():
+		
+		if self.has_verification_details():
 			self.status = "Verified"
 
 	def on_update_after_submit(self):
-		#self.update_child_doc_status()
 		update_container_status(self.name,self.status)
 
 	def before_cancel(self):
@@ -118,28 +115,6 @@ class Samples(TFStatusUpdater):
 			if not self.eq_owner:
 				frappe.throw(_("Equipment/Location Owner is required"))
 
-
-		"""if not self.eq_location:
-			frappe.throw(_("Location is required"))
-
-		if not self.receipt_date:
-			frappe.throw(_("Receipt Date is required"))
-
-		if not self.material:
-			frappe.throw(_("Material tested is required"))
-
-		if not self.laboratory:
-			frappe.throw(_("Receiving Laboratory is required"))
-
-		if not self.receipt_condition:
-			frappe.throw(_("Sample Condition is required"))
-
-		if not self.equipment:
-			frappe.throw(_("Equipment is required"))
-
-		if not self.location:
-			frappe.throw(_("Location is required"))"""
-
 	def get_no_of_bottles(self):
 		return frappe.db.count("Sampling Containers", filters={"parent":self.name})
 
@@ -162,7 +137,8 @@ class Samples(TFStatusUpdater):
 		update_container_status(self.name,self.status)
 
 	def declare_received(self, args):
-		rdate=args["receipt_date"]
+		rdate = args["receipt_date"]
+		sample_id = self.generate_new_sample_id()
 		if getdate(rdate) > getdate() or getdate(rdate) < getdate(self.collection_date):
 			frappe.throw(_("Received Date cannot be before collection date or future date"))
 		frappe.db.set(self, 'receipt_date', args["receipt_date"])
@@ -170,8 +146,11 @@ class Samples(TFStatusUpdater):
 		frappe.db.set(self, 'material', args["material"])
 		frappe.db.set(self, 'receipt_condition', args["receipt_condition"])
 		frappe.db.set(self, 'status', 'Received')
+		frappe.db.set(self, 'sample_id', sample_id)
 		update_container_status(self.name,self.status)
 
+	def generate_new_sample_id(self):
+		return frappe.model.naming.make_autoname("TL/SM/.YY./", "Samples")
 
 # Other Functiona
 def update_container_status(docname, status):
