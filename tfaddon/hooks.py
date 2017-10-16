@@ -123,4 +123,5 @@ develop_version = '1.x.x-beta'
 
 # Fixures
 # -------
-fixtures = ["Custom Field"]
+# fixtures = ["Custom Field"]
+fixtures = ["Custom Field", "Custom Script", "Property Setter", "Print Format", "Report", "Workflow", "Workflow State", "Workflow Action"]
