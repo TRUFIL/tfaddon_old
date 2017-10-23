@@ -4,20 +4,12 @@
   "doctype": "Workflow", 
   "document_type": "Sampling Request", 
   "is_active": 1, 
-  "modified": "2017-10-14 12:46:19.743131", 
+  "modified": "2017-10-23 13:59:21.579272", 
   "name": "Sampling Request Workflow", 
   "override_status": 0, 
   "states": [
    {
-    "allow_edit": "All", 
-    "doc_status": "0", 
-    "message": null, 
-    "state": "Draft", 
-    "update_field": "", 
-    "update_value": ""
-   }, 
-   {
-    "allow_edit": "Lab Coordinator", 
+    "allow_edit": "SR Creator", 
     "doc_status": "0", 
     "message": null, 
     "state": "To Assign", 
@@ -25,7 +17,7 @@
     "update_value": ""
    }, 
    {
-    "allow_edit": "Lab Coordinator", 
+    "allow_edit": "SR Closer", 
     "doc_status": "1", 
     "message": null, 
     "state": "In Process", 
@@ -33,24 +25,26 @@
     "update_value": ""
    }, 
    {
-    "allow_edit": "Lab Coordinator", 
+    "allow_edit": "SR Closer", 
     "doc_status": "1", 
     "message": null, 
     "state": "Closed", 
     "update_field": "", 
     "update_value": ""
+   }, 
+   {
+    "allow_edit": "System Manager", 
+    "doc_status": "2", 
+    "message": null, 
+    "state": "Cancelled", 
+    "update_field": null, 
+    "update_value": null
    }
   ], 
   "transitions": [
    {
-    "action": "Save To Assign", 
-    "allowed": "All", 
-    "next_state": "To Assign", 
-    "state": "Draft"
-   }, 
-   {
     "action": "Assign", 
-    "allowed": "Lab Coordinator", 
+    "allowed": "SR Closer", 
     "next_state": "In Process", 
     "state": "To Assign"
    }
