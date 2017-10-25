@@ -35,8 +35,7 @@ class Samples(TFStatusUpdater):
 			self.status = "In Process"
 		elif self.has_complete_details():
 			self.status = "Received"
-		
-		if self.has_verification_details():
+		elif self.has_verification_details():
 			self.status = "Verified"
 
 	def on_update_after_submit(self):
@@ -73,7 +72,13 @@ class Samples(TFStatusUpdater):
 		return False
 
 	def has_completed_job_order(self):
-		return False
+		# Temporarily completion is declared by Certificate No availability
+		if (self.certificate):
+			self.status = "Completed"
+			update_container_status(self.name,self.status)
+			return True
+		else:
+			return False
 
 	def has_disposed_details(self):
 		return False
