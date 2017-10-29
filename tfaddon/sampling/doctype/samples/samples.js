@@ -172,12 +172,20 @@ frappe.ui.form.on('Samples', {
 				callback: function(res) {
 					if (res.message) {
 						frm.set_value("sales_order", res.message.sales_order);
+						frm.set_value("po_no_date", res.message.po_no + " dated " + frappe.datetime.str_to_user(res.message.po_date));
+						frm.set_value("so_no_date", res.message.sales_order + " dated " + frappe.datetime.str_to_user(res.message.so_date));
+						frm.set_value("customer", res.message.customer);
+						frm.set_value("eq_owner", res.message.customer);
 						frm.toggle_enable("sales_order",false);
 					}
 				}
 			});
 		} else {
 			frm.set_value("sales_order", "");
+			frm.set_value("customer", "");
+			frm.set_value("po_no_date", "");
+			frm.set_value("so_no_date", "");
+			frm.set_value("eq_owner", "");
 			frm.toggle_enable("sales_order",true);
 		}
 		$.each(frm.doc.containers || [], function(i, d) {
@@ -190,33 +198,35 @@ frappe.ui.form.on('Samples', {
 		//frm.add_fetch('sales_order', 'po_no', 'po_no');
 		//frm.add_fetch('sales_order', 'po_date', 'po_date');
 		//alert("Sales Order: "+frm.doc.sales_order+'\n'+"Po No: "+frm.doc.po_no+"\n"+"PO Date: 0"+frm.doc.po_date);
-		if (frm.doc.sales_order) {
-			frappe.call({
-				"method": "frappe.client.get",
-				args: {
-					doctype: "Sales Order",
-					name: frm.doc.sales_order,
-				},
-				callback: function(res) {
-					if (res.message) {
-						frm.set_value("po_no_date", res.message.po_no + " dated " + frappe.datetime.str_to_user(res.message.po_date));
-						frm.set_value("so_no_date", res.message.name + " dated " + frappe.datetime.str_to_user(res.message.transaction_date));
-						frm.set_value("customer", res.message.customer);
-						frm.set_value("eq_owner", res.message.customer);
+		if (frappe.user.has_role('Lab Coordinator')) {
+			if (frm.doc.sales_order) {
+				frappe.call({
+					"method": "frappe.client.get",
+					args: {
+						doctype: "Sales Order",
+						name: frm.doc.sales_order,
+					},
+					callback: function(res) {
+						if (res.message) {
+							frm.set_value("po_no_date", res.message.po_no + " dated " + frappe.datetime.str_to_user(res.message.po_date));
+							frm.set_value("so_no_date", res.message.name + " dated " + frappe.datetime.str_to_user(res.message.transaction_date));
+							frm.set_value("customer", res.message.customer);
+							frm.set_value("eq_owner", res.message.customer);
+						}
 					}
-				}
-			});			
-		} else {
-			frm.set_value("customer", "");
-			frm.set_value("po_no_date", "");
-			frm.set_value("so_no_date", "");
-			frm.set_value("eq_owner", "");
+				});			
+			} else {
+				frm.set_value("customer", "");
+				frm.set_value("po_no_date", "");
+				frm.set_value("so_no_date", "");
+				frm.set_value("eq_owner", "");
+			}
+			$.each(frm.doc.containers || [], function(i, d) {
+				//if(!d.sales_order) d.sales_order = frm.doc.sales_order;
+				d.sales_order = frm.doc.sales_order;
+			});
+			refresh_field("containers");
 		}
-		$.each(frm.doc.containers || [], function(i, d) {
-			//if(!d.sales_order) d.sales_order = frm.doc.sales_order;
-			d.sales_order = frm.doc.sales_order;
-		});
-		refresh_field("containers");
 	},
 	smp_source: function(frm, cdt, cdn) {
 		if (frm.doc.smp_source == "Storage") {

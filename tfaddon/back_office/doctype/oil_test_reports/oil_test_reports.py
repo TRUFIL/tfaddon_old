@@ -12,6 +12,11 @@ class OilTestReports(Document):
 	def onload (self):
 		pass
 
+	def on_update(self):
+		doc = frappe.get_doc("Samples", self.sample)
+		if (doc.status == "Received"):
+			doc.save()
+
 	def on_submit(self):
 		if not self.report_no:
 			self.report_no = frappe.model.naming.make_autoname("TL/OTR/.YY./", "Oil Test Reports")

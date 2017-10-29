@@ -6,7 +6,7 @@ frappe.ui.form.on('Oil Test Reports', {
 		var doc = frm.doc;
 		frm.set_query("sample", function(){
 			return {
-				"filters": {"docstatus": 1, "status": "Verified"}
+				"filters": {"docstatus": 1, "status": "Received"}
 			}
 		});
 	},

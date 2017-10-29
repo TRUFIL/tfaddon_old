@@ -69,7 +69,10 @@ class Samples(TFStatusUpdater):
 			return 0
 
 	def has_open_job_order(self):
-		return False
+		if (frappe.db.exists("Oil Test Reports", {"sample":self.name})):
+			return 1
+		else:
+			return 0
 
 	def has_completed_job_order(self):
 		# Temporarily completion is declared by Certificate No availability
