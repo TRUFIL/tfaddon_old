@@ -308,8 +308,11 @@ frappe.ui.form.on('Samples', {
 		}
 
 		if (doc.docstatus == 1) {
+			//console.log("To Be Verified 1: "+to_be_verified);
 			frm.toggle_enable("location", to_be_verified? 1: 0);
 			frm.toggle_reqd("location", to_be_verified? 1: 0);
+			//console.log ("read_only: "+cur_frm.get_docfield("location").read_only);
+			//console.log ("reqd: "+cur_frm.get_docfield("location").reqd);
 			frm.toggle_enable("equipment", to_be_verified? 1: 0);
 			frm.toggle_reqd("equipment", to_be_verified? 1: 0);
 			//alert("After Submit: Document status is :" + doc.docstatus);

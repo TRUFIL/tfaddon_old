@@ -6,12 +6,26 @@ frappe.ui.form.on('Oil Test Reports', {
 		var doc = frm.doc;
 		frm.set_query("sample", function(){
 			return {
-				"filters": {"docstatus": 1, "status": "Verified"}
+				"filters": {"docstatus": 1, "status": "Received"}
 			}
 		});
 	},
 	equipment: function(frm, cdt, cdn) {
 		if (frm.doc.equipment) {
+			/*
+			frappe.call ({
+				'method': 'tfaddon.get_equipment_details',
+				'args': {
+					'equipment':frm.doc.equipment,
+				},
+				'callback': function(res) {
+					if (res.message) {
+						console.log(res.message);
+					}
+				}
+
+			});
+			*/
 			frappe.call ({
 				'method': 'frappe.client.get',
 				'args': {
@@ -71,6 +85,26 @@ frappe.ui.form.on('Oil Test Reports', {
 		}
 	},
 	sample: function(frm, cdt, cdn) {
+		/*
+		if (frm.doc.sample) {
+			frappe.call ({
+				"method": "frappe.client.get_value",
+				"args": {
+					"doctype": "Samples",
+					"fildname": "status",
+					"filters": {"name":frm.doc.sample}
+				},
+				"callback": function(res) {
+					if (res.message && res.message.status != "Received") {
+						//frappe.throw(_("Invalid Sample or Sample Not received"));
+						msgprint("Invalid Sample or Sample Not received")
+						validated=false;
+						console.log(res.message.status);
+					}
+				}
+			});
+		}
+		*/
 		if (frm.doc.sales_order) {
 			//alert('Inside sales_order Trigger...');
 			frappe.call ({
