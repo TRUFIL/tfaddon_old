@@ -16,18 +16,19 @@ class SamplingRequest(Document):
 		if (self.is_new()):
 			self.validate_new_document()
 
+			# Update action_status
+			if (not self.action_status):
+				if (getdate(self.est_start_date) - getdate(self.creation)).days > 2:
+					self.action_status = "Normal"
+				else:
+					self.action_status = "Urgent"
+
 	def before_submit(self):
-		if not self.assigned_to:
-			frappe.throw(_("Job Assigned To is required"))
-
-		if not self.contact_name:
-			frappe.throw(_("Person to Contact is required"))
-
-		if not self.contact_no:
-			frappe.throw(_("Contact No is required"))
-
-		if not self.req_remarks:
-			frappe.throw(_("Request Remarks is required"))
+		if (self.workflow_state == "In Process"):
+			if not (self.assigned_to and self.contact_name and self.contact_no and self.req_remarks):
+				self.workflow_state = "To Assign"
+				self.docstatus = 0
+				frappe.throw(_("Assignment details are required before Assign action"))
 
 	def on_submit(self):
 		pass

@@ -12,7 +12,8 @@ from tfaddon.controllers.tf_status_updater import TFStatusUpdater
 
 class Samples(TFStatusUpdater):
 	def onload(self):
-		pass
+		count=self.get_bottle_count_in_bag() + self.no_of_containers
+		frappe.msgprint(_("Currently there are {0} bottles in bag no {1}".format(count,self.bag_no)))
 
 	def before_insert(self):
 		pass
@@ -48,7 +49,50 @@ class Samples(TFStatusUpdater):
 		update_container_status(self.name,self.status)
 
 	def validate(self):
+		self.validate_bag_availability()
+		self.validate_bag_capacity()
 		self.validate_mandatory()
+
+	def validate_bag_availability(self):
+		if frappe.db.count("Sample Dispatch Register",{"bag_no":self.bag_no,"docstatus":1}) > 0:
+			frappe.throw(_("Bag No {0} already dispatched".format(self.bag_no)))
+
+	def validate_bag_capacity(self):
+		if (self.get_bottle_count_in_bag() + self.no_of_containers) > 21:
+			frappe.throw(_("Bag No {0} cannot accomodate {1} more containers".format(self.bag_no,self.no_of_containers)))
+
+	def validate_mandatory(self):
+		if (self.docstatus == 0):
+			if (self.collected_by == "TRUFIL"):
+				if not (self.sampling_request):
+					frappe.throw(_("Sampling Request is required"))
+				if not (self.sampler_name):
+					frappe.throw(_("Sampler Name is required"))
+			elif (self.collected_by == "Customer"):
+				if not (self.sales_order):
+					frappe.throw(_("Sales Order is required"))
+			else:
+				frappe.throw(_("Collected By is required"))
+
+			if self.smp_source == "Equipment":
+				if not self.smp_type:
+					frappe.throw(_("Please select appropriate Sample Type"))
+				if not self.smp_point:
+					frappe.throw(_("Please select appropriate Sampling Point"))
+			elif self.smp_source == "Storage":
+				if self.smp_type != "Transformer Oil":
+					frappe.throw(_("Sample Type must be Transformer Oil if sample is collected from Storage"))
+			else:
+				frappe.throw(_("Please select appropriate Sample Taken From"))
+
+			if not self.weather_condition:
+				frappe.throw(_("Please select appropriate Weather Condition"))
+
+			if not self.smp_condition:
+				frappe.throw(_("Please select appropriate Sampling Condition"))
+
+			if not self.eq_owner:
+				frappe.throw(_("Equipment/Location Owner is required"))
 
 	def has_verification_details(self):
 		if self.equipment and self.location:
@@ -86,43 +130,6 @@ class Samples(TFStatusUpdater):
 	def has_disposed_details(self):
 		return False
 
-	def validate_mandatory(self):
-		if (self.docstatus == 0):
-			if (self.collected_by == "TRUFIL"):
-				if not (self.sampling_request):
-					frappe.throw(_("Sampling Request is required"))
-				if not (self.sampler_name):
-					frappe.throw(_("Sampler Name is required"))
-
-			if (self.collected_by == "Customer"):
-				if not (self.sales_order):
-					frappe.throw(_("Sales Order is required"))
-			elif (self.collected_by == "TRUFIL"):
-				if not (self.sampler_name):
-					frappe.throw(_("Sampler Name is required"))
-			else:
-				frappe.throw(_("Collected By is required"))
-
-			if self.smp_source == "Equipment":
-				if not self.smp_type:
-					frappe.throw(_("Please select appropriate Sample Type"))
-				if not self.smp_point:
-					frappe.throw(_("Please select appropriate Sampling Point"))
-			elif self.smp_source == "Storage":
-				if self.smp_type != "Transformer Oil":
-					frappe.throw(_("Sample Type must be Transformer Oil if sample is collected from Storage"))
-			else:
-				frappe.throw(_("Please select appropriate Sample Taken From"))
-
-			if not self.weather_condition:
-				frappe.throw(_("Please select appropriate Weather Condition"))
-
-			if not self.smp_condition:
-				frappe.throw(_("Please select appropriate Sampling Condition"))
-
-			if not self.eq_owner:
-				frappe.throw(_("Equipment/Location Owner is required"))
-
 	def get_no_of_bottles(self):
 		return frappe.db.count("Sampling Containers", filters={"parent":self.name})
 
@@ -152,6 +159,8 @@ class Samples(TFStatusUpdater):
 		frappe.db.set(self, 'receipt_date', args["receipt_date"])
 		frappe.db.set(self, 'laboratory', args["laboratory"])
 		frappe.db.set(self, 'material', args["material"])
+		frappe.db.set(self, 'smp_condition', args["smp_condition"])
+		frappe.db.set(self, 'sample_remarks', args["sample_remarks"])
 		frappe.db.set(self, 'receipt_condition', args["receipt_condition"])
 		frappe.db.set(self, 'status', 'Received')
 		frappe.db.set(self, 'sample_id', sample_id)
@@ -160,8 +169,19 @@ class Samples(TFStatusUpdater):
 	def generate_new_sample_id(self):
 		return frappe.model.naming.make_autoname("TL/SM/.YY./", "Samples")
 
+	def get_bottle_count_in_bag(self):
+		if self.is_new(): 
+			name=""
+		else:
+			name=self.name
+		return frappe.db.sql("""select count(*) from `tabSampling Containers` as c  
+			join `tabSamples` as p on p.name=c.parent 
+			where p.bag_no = %s and p.name != %s 
+			order by p.bag_no,c.parent;""",(self.bag_no,name))[0][0]
+
 # Other Functiona
 def update_container_status(docname, status):
 	bottles = frappe.get_all("Sampling Containers", filters = {"parent":docname})
 	for bot in bottles:
 		frappe.db.set_value("Sampling Containers",bot,"status",status)
+

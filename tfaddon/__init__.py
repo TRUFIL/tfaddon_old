@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import frappe
-from frappe import _
+import frappe 
+from frappe import _ 
 from datetime import datetime, date, time
 from frappe.desk.reportview import get_match_cond, get_filters_cond
 from frappe.utils import nowdate
 from collections import defaultdict
 
-__version__ = '1.2.9'
+__version__ = '2.0.1'
 __title__ = "TRUFIL Addon"
 
 # Function to generate unique serial number
@@ -51,3 +51,24 @@ def get_no_of_samples(doctype, filters=None):
 @frappe.whitelist()
 def get_equipment_details(equipment):
 	return frappe.get_doc("Equipments", equipment).as_dict()
+
+@frappe.whitelist()
+def get_location_details(location):
+	return frappe.get_doc("Locations", location).as_dict()
+
+@frappe.whitelist() 
+def get_so_details(doctype, docname):
+	return frappe.db.sql("""Select name,customer,customer_name,customer_legal_name,transaction_date, 
+		po_no,po_date,collected_by,address_display 
+		from `tabSales Order`
+		where name = %s""",(docname),as_dict=True, formatted=True)
+
+@frappe.whitelist() 
+def get_customer_details(doctype, docname):
+	
+	return frappe.db.sql("""Select customer_name,customer_legal_name,customer_type, 
+		customer_group,territory,cin,yoi,pan 
+		from `tabCustomer`
+		where disabled=0 and name = %s""",(docname), as_dict=True, formatted=True)
+
+	#return erpnext.controllers.queries.customer_query(doctype, docname)

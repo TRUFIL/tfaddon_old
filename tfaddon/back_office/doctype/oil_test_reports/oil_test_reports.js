@@ -12,7 +12,7 @@ frappe.ui.form.on('Oil Test Reports', {
 	},
 	equipment: function(frm, cdt, cdn) {
 		if (frm.doc.equipment) {
-			/*
+			
 			frappe.call ({
 				'method': 'tfaddon.get_equipment_details',
 				'args': {
@@ -21,19 +21,6 @@ frappe.ui.form.on('Oil Test Reports', {
 				'callback': function(res) {
 					if (res.message) {
 						console.log(res.message);
-					}
-				}
-
-			});
-			*/
-			frappe.call ({
-				'method': 'frappe.client.get',
-				'args': {
-					'doctype': 'Equipments',
-					'name': frm.doc.equipment
-				},
-				'callback': function(res) {
-					if (res.message) {
 						frm.set_value("owner_eq_id", res.message.owner_eq_id? res.message.owner_eq_id: "-- ");
 						frm.set_value("eq_type", res.message.eq_type);
  						frm.set_value("manufacturer_full_name", res.message.manufacturer_full_name);
@@ -62,99 +49,79 @@ frappe.ui.form.on('Oil Test Reports', {
 						frm.set_value("insulating_fluid", res.message.eq_oil_type + " / " + oil_qty);
 					}
 				}
+
 			});
 		}
 	},
 	location: function(frm, cdt, cdn) {
 		if (frm.doc.location) {
+			
 			frappe.call ({
-				'method': 'frappe.client.get',
+				'method': 'tfaddon.get_location_details',
 				'args': {
-					'doctype': 'Locations',
-					'name': frm.doc.location
+					'location':frm.doc.location,
 				},
 				'callback': function(res) {
 					if (res.message) {
+						console.log(res.message);
 						frm.set_value("installation_location", res.message.area + "/ " + res.message.location);
 						frm.set_value("installation", res.message.installation? res.message.installation: "NS");
 						frm.set_value("loc_cd", res.message.cd? res.message.cd: "NS" );
 						frm.set_value("loc_ccd", res.message.ccd? res.message.ccd: "NS");
 					}
 				}
-			});			
+
+			});
 		}
 	},
 	sample: function(frm, cdt, cdn) {
-		/*
 		if (frm.doc.sample) {
+			if (frm.doc.eq_load == 0) {frm.doc.eq_load = "--";}
+			if (frm.doc.eq_ott == 0) {frm.doc.eq_ott = "--";}
+			if (frm.doc.eq_wtt == 0) {frm.doc.eq_wtt = "--";}
+			//if (frm.doc.eq_owner == "") {frm.doc.eq_owner = frm.doc.issued_to;}
+			//frm.events.eq_owner(frm);
+		}
+	},
+	sales_order: function (frm) {
+		if (frm.doc.sales_order) {
 			frappe.call ({
-				"method": "frappe.client.get_value",
-				"args": {
-					"doctype": "Samples",
-					"fildname": "status",
-					"filters": {"name":frm.doc.sample}
+				'method': 'tfaddon.get_so_details',
+				'args': {
+					'doctype': 'Sales Order',
+					'docname': frm.doc.sales_order
 				},
-				"callback": function(res) {
-					if (res.message && res.message.status != "Received") {
-						//frappe.throw(_("Invalid Sample or Sample Not received"));
-						msgprint("Invalid Sample or Sample Not received")
-						validated=false;
-						console.log(res.message.status);
+				'callback': function(res) {
+					if (res.message) {
+						console.log(res.message);
+						frm.set_value("po_no_date", res.message[0]["po_no"] + " dated " + 
+							frappe.datetime.str_to_user(res.message[0]["po_date"]));
+						frm.set_value("so_no_date", res.message[0]["name"] + " dated " + 
+							frappe.datetime.str_to_user(res.message[0]["transaction_date"]));
+						frm.set_value("issued_to", res.message[0]["customer_legal_name"]);
+						frm.set_value("issued_to_address", res.message[0]["address_display"]);
 					}
 				}
 			});
 		}
-		*/
-		if (frm.doc.sales_order) {
-			//alert('Inside sales_order Trigger...');
+	},
+	eq_owner: function (frm) {
+		if (frm.doc.eq_owner) {
 			frappe.call ({
-				'method': 'frappe.client.get_list',
-				'args': {
-					'doctype': 'Sampling Containers',
-					'fields': ['container_no','container_type','cust_identification'],
-					'filters': {'parent': frm.doc.sample} 
-				},
-				'callback': function(res) {
-					
-					//console.log(res);
-					if (res.message) {
-						//alert('Inside callback if...');
-						//$.each()
-						var c_cont = "";
-						var t_cont = "";
-						for (i=0; i < res.message.length; i++) {
-							if (c_cont != "") {c_cont += " & ";}
-							if (t_cont != "") {t_cont += " & ";}
-							t_cont += res.message[i].container_no;
-							if (!res.message[i].cust_identification) {
-								c_cont += "--";
-							} else {
-								c_cont += res.message[i].cust_identification;
-							}
-						}
-						frm.set_value("trufil_container", t_cont);
-						frm.set_value("customer_container", c_cont);
-
-						//console.log(c_cont);
-						//console.log(t_cont);
-					}
-				}
-			});
-			frappe.call ({
-				'method': 'frappe.client.get',
+				'method': 'tfaddon.get_customer_details',
 				'args': {
 					'doctype': 'Customer',
-					'name': frm.doc.eq_owner
+					'docname': frm.doc.eq_owner
 				},
 				'callback': function(res) {
 					if (res.message) {
-						frm.set_value("eq_owner_name", res.message.customer_legal_name);
+						console.log(res.message);
+						console.log(res.message[0]["customer_legal_name"]);
+						frm.set_value("eq_owner_name", res.message[0]["customer_legal_name"]);
+						//frm.set_value("issued_to_address", res.message[0]["address_display"]);
 					}
 				}
 			});
-			if (frm.doc.eq_load == 0) {frm.doc.eq_load = "--";}
-			if (frm.doc.eq_ott == 0) {frm.doc.eq_ott = "--";}
-			if (frm.doc.eq_wtt == 0) {frm.doc.eq_wtt = "--";}
 		}
 	}
 });

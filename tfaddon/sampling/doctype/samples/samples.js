@@ -25,12 +25,12 @@ frappe.ui.form.on('Samples', {
 		});
 		frm.set_query("smp_equipment", function(){
 			return {
-				"filters": {"eq_owner": doc.eq_owner}
+				"filters": {"eq_owner": doc.customer}
 			}
 		});
 		frm.set_query("smp_location", function(){
 			return {
-				"filters": {"loc_owner": doc.eq_owner}
+				"filters": {"loc_owner": doc.customer}
 			}
 		});
 		frm.set_query("equipment", function(){
@@ -66,14 +66,62 @@ frappe.ui.form.on('Samples', {
 			frm.toggle_reqd("bag_no", (frm.doc.collected_by == "TRUFIL") ? 1 : 0);
 			frm.toggle_reqd("sampling_request", (frm.doc.collected_by == "TRUFIL") ? 1 : 0);
 			frm.toggle_reqd("sampler_name", (frm.doc.collected_by == "TRUFIL") ? 1 : 0);
-			frm.toggle_reqd("sales_order", true);
-			if (collected_by == "Customer" && frm.doc.sampler_name) {
+			frm.toggle_reqd("sales_order", (frm.doc.collected_by == "Customer") ? 1 : 0);
+			if (frm.doc.collected_by == "Customer") {
 				frm.set_value("sampler_name","");
-			} 
-			if (collected_by == "Customer" && frm.doc.sampling_request) {
 				frm.set_value("sampling_request","");
-			}
+			} 
 		}
+	},
+	sampling_request: function(frm, cdt, cdn) {
+		if (frm.doc.sampling_request) {
+			frappe.call({
+				"method": "frappe.client.get",
+				args: {
+					doctype: "Sampling Request",
+					filters: {"name": frm.doc.sampling_request},
+				},
+				callback: function(res) {
+					if (res.message) {
+						frm.set_value("sales_order", res.message.sales_order);
+						frm.toggle_enable("sales_order",false);
+					}
+				}
+			});
+		} else {
+			frm.set_value("sales_order", "");
+			frm.toggle_enable("sales_order",true);
+		}
+		refresh_field("sales_order");
+		$.each(frm.doc.containers || [], function(i, d) {
+			d.sampling_request = frm.doc.sampling_request;
+		});
+		refresh_field("containers");
+	},
+	sales_order: function(frm, cdt, cdn) {
+		if (frm.doc.sales_order) {
+			frappe.call({
+				"method": "tfaddon.get_so_details",
+				args: {
+					doctype: "Sales Order",
+					docname: frm.doc.sales_order,
+				},
+				callback: function(res) {
+					if (res.message) {
+						frm.set_value("customer", res.message[0]["customer"]);
+						frm.set_value("eq_owner", res.message[0]["customer"]);
+					}
+				}
+			});			
+		} else {
+			frm.set_value("customer", "");
+			frm.set_value("eq_owner", "");
+		}
+		$.each(frm.doc.containers || [], function(i, d) {
+			//if(!d.sales_order) d.sales_order = frm.doc.sales_order;
+			d.sales_order = frm.doc.sales_order;
+		});
+		refresh_field("containers");
 	},
 	loc_not_in_list: function(frm) {
 		var doc = frm.doc;
@@ -145,7 +193,7 @@ frappe.ui.form.on('Samples', {
 				callback: function(res) {
 					if (res.message) {
 						//console.log(res.message);
-						frm.set_value("eq_make", res.message.manufacturer_full_name);
+						frm.set_value("eq_make", res.message.eq_manufacturer);
 						frm.set_value("eq_serial", res.message.eq_sl_no);
 						frm.set_value("eq_rating", res.message.capacity);
 						frm.set_value("eq_vr", res.message.voltage);
@@ -158,74 +206,6 @@ frappe.ui.form.on('Samples', {
 					}
 				}
 			});
-		}
-	},
-	sampling_request: function(frm, cdt, cdn) {
-		//frm.add_fetch('sampling_request', 'sales_order', 'sales_order');
-		if (frm.doc.sampling_request) {
-			frappe.call({
-				"method": "frappe.client.get",
-				args: {
-					doctype: "Sampling Request",
-					filters: {"name": frm.doc.sampling_request},
-				},
-				callback: function(res) {
-					if (res.message) {
-						frm.set_value("sales_order", res.message.sales_order);
-						frm.set_value("po_no_date", res.message.po_no + " dated " + frappe.datetime.str_to_user(res.message.po_date));
-						frm.set_value("so_no_date", res.message.sales_order + " dated " + frappe.datetime.str_to_user(res.message.so_date));
-						frm.set_value("customer", res.message.customer);
-						frm.set_value("eq_owner", res.message.customer);
-						frm.toggle_enable("sales_order",false);
-					}
-				}
-			});
-		} else {
-			frm.set_value("sales_order", "");
-			frm.set_value("customer", "");
-			frm.set_value("po_no_date", "");
-			frm.set_value("so_no_date", "");
-			frm.set_value("eq_owner", "");
-			frm.toggle_enable("sales_order",true);
-		}
-		$.each(frm.doc.containers || [], function(i, d) {
-			//if(!d.sampling_request) d.sampling_request = frm.doc.sampling_request;
-			d.sampling_request = frm.doc.sampling_request;
-		});
-		refresh_field("containers");
-	},
-	sales_order: function(frm, cdt, cdn) {
-		//frm.add_fetch('sales_order', 'po_no', 'po_no');
-		//frm.add_fetch('sales_order', 'po_date', 'po_date');
-		//alert("Sales Order: "+frm.doc.sales_order+'\n'+"Po No: "+frm.doc.po_no+"\n"+"PO Date: 0"+frm.doc.po_date);
-		if (frappe.user.has_role('Lab Coordinator')) {
-			if (frm.doc.sales_order) {
-				frappe.call({
-					"method": "frappe.client.get",
-					args: {
-						doctype: "Sales Order",
-						name: frm.doc.sales_order,
-					},
-					callback: function(res) {
-						if (res.message) {
-							frm.set_value("po_no_date", res.message.po_no + " dated " + frappe.datetime.str_to_user(res.message.po_date));
-							frm.set_value("so_no_date", res.message.name + " dated " + frappe.datetime.str_to_user(res.message.transaction_date));
-							frm.set_value("customer", res.message.customer);
-							frm.set_value("eq_owner", res.message.customer);
-						}
-					}
-				});			
-			} else {
-				frm.set_value("customer", "");
-				frm.set_value("po_no_date", "");
-				frm.set_value("so_no_date", "");
-				frm.set_value("eq_owner", "");
-			}
-			$.each(frm.doc.containers || [], function(i, d) {
-				//if(!d.sales_order) d.sales_order = frm.doc.sales_order;
-				d.sales_order = frm.doc.sales_order;
-			});
-			refresh_field("containers");
 		}
 	},
 	smp_source: function(frm, cdt, cdn) {
@@ -303,11 +283,10 @@ frappe.ui.form.on('Samples', {
 	},
 	required_fields: function(frm, cdt, cdn) {
 		var doc = frm.doc;
-		//alert("Required Field Called... and docstatus is: " + doc.docstatus);
 		var to_be_edited = (doc.status == "Draft");
 		var to_be_verified = ((doc.collected_by == "Customer" && doc.status == 'Collected') || (doc.collected_by == "TRUFIL" && doc.status == 'Dispatched'));
-		var sf = ["collection_date","smp_source","smp_type","smp_point","smp_condition",
-			"weather_condition","eq_owner","sampler_remarks"];
+		var sf = ["collection_date","smp_source","smp_type","smp_point",
+			"weather_condition","sampler_remarks"];
 		// Make basic Fields Mandatory
 		if (doc.__islocal || doc.docstatus == 0) {
 			for (i = 0; i < sf.length; i++) {
@@ -318,14 +297,12 @@ frappe.ui.form.on('Samples', {
 		}
 
 		if (doc.docstatus == 1) {
-			//console.log("To Be Verified 1: "+to_be_verified);
+			frm.toggle_enable("eq_owner", to_be_verified? 1: 0);
+			frm.toggle_reqd("eq_owner", to_be_verified? 1: 0);
 			frm.toggle_enable("location", to_be_verified? 1: 0);
 			frm.toggle_reqd("location", to_be_verified? 1: 0);
-			//console.log ("read_only: "+cur_frm.get_docfield("location").read_only);
-			//console.log ("reqd: "+cur_frm.get_docfield("location").reqd);
 			frm.toggle_enable("equipment", to_be_verified? 1: 0);
 			frm.toggle_reqd("equipment", to_be_verified? 1: 0);
-			//alert("After Submit: Document status is :" + doc.docstatus);
 		}
 
 		frm.events.collected_by(frm);
@@ -371,14 +348,25 @@ frappe.ui.form.on("Sampling Containers", {
 	containers_remove: function(frm, cdt, cdn) {
 		// Update sample_id
 		var bottles = frm.doc.containers;
-		sample_id = "";
+		trufil_container = "";
+		customer_container = "";
+		no_of_containers = 0;
 		for (var i in bottles) {
-			if (sample_id != "") {sample_id += "-";}
-			sample_id += bottles[i].container_no;
+			if (trufil_container != "") {trufil_container += "-";}
+			trufil_container += bottles[i].container_no;
+
+			if (customer_container != "") {customer_container += "-";}
+			if (bottles[i].cust_identification) {
+				customer_container += bottles[i].cust_identification;
+			} else {
+				customer_container += "--";
+			}
+
+			no_of_containers++;
 		}
-		if (sample_id != "") {
-			frm.set_value("sample_id", sample_id);
-		}		
+		frm.set_value("trufil_container", trufil_container);
+		frm.set_value("customer_container", customer_container);
+		frm.set_value("no_of_containers", no_of_containers);
 	},
 	bag_no: function(frm, cdt, cdn) {
 		if(!frm.doc.bag_no) {
@@ -400,16 +388,32 @@ frappe.ui.form.on("Sampling Containers", {
 			erpnext.utils.copy_value_in_all_row(frm.doc, cdt, cdn, "containers", "status");
 		}
 	},
-	container_no: function(frm, cdt, cdn) {
+	container_no: function(frm) {
+		// Update trufil_container
 		var bottles = frm.doc.containers;
-		sample_id = "";
+		trufil_container = "";
+		no_of_containers = 0;
 		for (var i in bottles) {
-			if (sample_id != "") {sample_id += "-";}
-			sample_id += bottles[i].container_no;
+			if (trufil_container != "") {trufil_container += "-";}
+			trufil_container += bottles[i].container_no;
+			no_of_containers++;
 		}
-		if (sample_id != "") {
-			frm.set_value("sample_id", sample_id);
-		}		
+		frm.set_value("trufil_container", trufil_container);
+		frm.set_value("no_of_containers", no_of_containers);
+	},
+	cust_identification: function (frm) {
+		// Update customer_container
+		var bottles = frm.doc.containers;
+		customer_container = "";
+		for (var i in bottles) {
+			if (customer_container != "") {customer_container += "-";}
+			if (bottles[i].cust_identification) {
+				customer_container += bottles[i].cust_identification;
+			} else {
+				customer_container += "--";
+			}
+		}
+		frm.set_value("customer_container", customer_container);
 	}
 });
 
@@ -458,6 +462,8 @@ cur_frm.cscript['Receive Samples'] = function() {
 			{"fieldtype": "Date", "label": __("Received Date"), "fieldname": "receipt_date", "reqd": 1 },
 			{"fieldtype": "Link", "label": __("Receiving Lab"), "fieldname": "laboratory", "reqd": 1, "options": "Laboratories" },
 			{"fieldtype": "Link", "label": __("Material Tested"), "fieldname": "material", "reqd": 1, "options": "Materials" },
+			{"fieldtype": "Link", "label": __("Reason for Sampling"), "fieldname": "smp_condition", "reqd": 1, "options": "Sampling Condition" },
+			{"fieldtype": "Data", "label": __("Sample Remarks"), "fieldname": "sample_remarks", "reqd": 1, "length":96},
 			{"fieldtype": "Select", "label": __("Condition on Receipt"), "fieldname": "receipt_condition", "reqd": 1, "options": "OK\nBROKEN\nDISPUTED"},
 			{"fieldtype": "Button", "label": __("Update"), "fieldname": "update"},
 		]
@@ -470,7 +476,8 @@ cur_frm.cscript['Receive Samples'] = function() {
 			method: "declare_received",
 			doc: cur_frm.doc,
 			args: {receipt_date:args.receipt_date, laboratory:args.laboratory, 
-				material:args.material, receipt_condition:args.receipt_condition},
+				material:args.material, smp_condition:args.smp_condition,
+				sample_remarks:args.sample_remarks, receipt_condition:args.receipt_condition},
 			callback: function(r) {
 				if(r.exc) {
 					frappe.msgprint(__("There were errors."));

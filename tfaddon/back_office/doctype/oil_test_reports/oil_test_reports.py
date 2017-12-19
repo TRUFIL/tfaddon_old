@@ -28,6 +28,13 @@ class OilTestReports(Document):
 		doc.status = "Completed"
 		doc.save()
 
+	def before_cancel(self):
+		doc = frappe.get_doc("Samples", self.sample)
+		doc.certificate = ""
+		doc.status = "Received"
+		doc.save()
+
+
 	def validate(self):
 		if not (self.is_ost or self.is_dga or self.is_furan):
 			frappe.throw(_("Please select the appropriate tests for which this certificate is generated"))

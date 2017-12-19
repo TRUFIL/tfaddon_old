@@ -11,6 +11,13 @@ frappe.ui.form.on('Sampling Request', {
 	},
 	refresh: function(frm, cdt, cdn) {
 		var doc = frm.doc;
+		frm.set_query("sales_order", function(){
+			return {
+				"filters": {"docstatus":["<",2], 
+							"status": "Received", 
+							"collected_by": "Customer"} 
+			}
+		});
 		if(doc.docstatus == 1 && doc.workflow_state == 'In Process') {
 			cur_frm.add_custom_button(__('Close'), cur_frm.cscript['Close Request']);
 			cur_frm.add_custom_button(__('Cancel'), cur_frm.cscript['Cancel Request']);

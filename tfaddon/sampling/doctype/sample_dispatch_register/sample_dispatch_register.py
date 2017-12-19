@@ -17,6 +17,9 @@ class SampleDispatchRegister(Document):
 		self.update_read_only_fields()
 		self.validate_mandatory_field()
 
+	def before_submit(self):
+		self.validate_ready_to_dispatch_sample()
+
 	def on_submit(self):
 		self.update_sample_status()
 		self.update_containers_status()
@@ -89,3 +92,15 @@ class SampleDispatchRegister(Document):
 			doc.status = "Dispatched"
 			doc.save()
 
+	def validate_ready_to_dispatch_sample(self):
+		slist = [row.status for row in frappe.get_all("Samples", 
+			fields=["name", "status"], 
+			filters = {"bag_no":self.bag_no})
+		]
+		total = len(slist)
+		collected = slist.count("Collected")
+		invalid = total - collected
+		if invalid > 0:
+			self.docstatus = 0
+			frappe.throw(_("{0} samples out of {1} are not ready for dispatch".format(invalid,total)))
+		

@@ -33,7 +33,7 @@ frappe.ui.form.on('Sample Dispatch Register', {
 				'method': 'frappe.client.get_list',
 				'args': {
 					'doctype': 'Samples',
-					'fields': ['name','sample_id','customer','loc_area','loc_location','loc_cd',
+					'fields': ['name','trufil_container','customer','loc_area','loc_location','loc_cd',
 					'eq_make','eq_serial','collection_date','status','bag_no','laboratory'],
 					'filters': {'bag_no':doc.bag_no}
 				},
@@ -102,7 +102,7 @@ var samples_table_template = `
 					</tr>
 					{% for row in rows %}
 					<tr>
-						<td><a href="desk#Form/Samples/{{ row.name }}" target="_blank">{{ row.sample_id }}</a></td>
+						<td><a href="desk#Form/Samples/{{ row.name }}" target="_blank">{{ row.trufil_container }}</a></td>
 						<td>{{ row.collection_date }}</td>
 						<td>{{ row.loc_area }}/{{ row.loc_location }}/{{ row.loc_cd }}</td>
 						<td>{{ row.eq_make }}/{{ row.eq_serial }}</td>
