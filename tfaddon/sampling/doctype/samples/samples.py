@@ -12,8 +12,9 @@ from tfaddon.controllers.tf_status_updater import TFStatusUpdater
 
 class Samples(TFStatusUpdater):
 	def onload(self):
-		count=self.get_bottle_count_in_bag() + self.no_of_containers
-		frappe.msgprint(_("Currently there are {0} bottles in bag no {1}".format(count,self.bag_no)))
+		pass
+		#count=self.get_bottle_count_in_bag() + self.no_of_containers
+		#frappe.msgprint(_("Currently there are {0} bottles in bag no {1}".format(count,self.bag_no)))
 
 	def before_insert(self):
 		pass
