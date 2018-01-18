@@ -62,7 +62,6 @@ frappe.ui.form.on('Sampling Request', {
 				'filters': {'sampling_request':frm.doc.name}
 			},
 			'callback': function(res) {
-				console.log(res.message);
 				if (res.message) {
 					frm.set_df_property('list_of_samples', 'options', frappe.render(samples_table_template, {rows: res.message}));
 				} else {

@@ -15,7 +15,12 @@ class OilTestReports(Document):
 	def on_update(self):
 		doc = frappe.get_doc("Samples", self.sample)
 		if (doc.status == "Received"):
+			doc.status = "In Process"
 			doc.save()
+
+	def on_trash(self):
+		frappe.db.sql("""update `tabSamples` set status='Received' where name=%s""",
+			self.sample)
 
 	def on_submit(self):
 		if not self.report_no:
@@ -57,6 +62,21 @@ class OilTestReports(Document):
 		if (self.docstatus == 0):
 			self.update_read_only_fields()
 
+		if (self.is_alt_issued_to == 1):
+			# Throw exception if Alt Customer is blank
+			if not self.alt_customer or self.alt_customer == "":
+				frappe.throw(_("Alt Customer is required"))
+
+			# Throw exception if Alt Address is blank
+			if not self.alt_address:
+				frappe.throw(_("Alt Address is required"))
+		else:
+			# Make alt details blank
+			self.alt_customer = ""
+			self.alt_issued_to = ""
+			self.alt_address = ""
+			self.alt_issued_to_address = ""
+
 	def update_read_only_fields(self):
 		if (self.is_dga):
 			self.dga_tdcg = self.calculate_tdcg()
@@ -86,3 +106,4 @@ def calculate_total(field_list, precision = 2):
 
 def get_equipment_details(equipment):
 	return frappe.get_doc("Equipments", equipment).as_dict()
+

@@ -9,6 +9,19 @@ frappe.ui.form.on('Oil Test Reports', {
 				"filters": {"docstatus": 1, "status": "Received"}
 			}
 		});
+		frm.set_query("alt_address", function(){
+			if(doc.is_alt_issued_to && (!doc.alt_customer)) {
+				frappe.throw(_('Please select Alt Customer'));
+			}
+
+			return {
+				query: 'frappe.contacts.doctype.address.address.address_query',
+				filters: {
+					link_doctype: 'Customer',
+					link_name: doc.alt_customer
+				}
+			};
+		});
 	},
 	equipment: function(frm, cdt, cdn) {
 		if (frm.doc.equipment) {
@@ -79,8 +92,6 @@ frappe.ui.form.on('Oil Test Reports', {
 			if (frm.doc.eq_load == 0) {frm.doc.eq_load = "--";}
 			if (frm.doc.eq_ott == 0) {frm.doc.eq_ott = "--";}
 			if (frm.doc.eq_wtt == 0) {frm.doc.eq_wtt = "--";}
-			//if (frm.doc.eq_owner == "") {frm.doc.eq_owner = frm.doc.issued_to;}
-			//frm.events.eq_owner(frm);
 		}
 	},
 	sales_order: function (frm) {
@@ -115,13 +126,19 @@ frappe.ui.form.on('Oil Test Reports', {
 				},
 				'callback': function(res) {
 					if (res.message) {
-						console.log(res.message);
-						console.log(res.message[0]["customer_legal_name"]);
+						//console.log(res.message);
+						//console.log(res.message[0]["customer_legal_name"]);
 						frm.set_value("eq_owner_name", res.message[0]["customer_legal_name"]);
-						//frm.set_value("issued_to_address", res.message[0]["address_display"]);
 					}
 				}
 			});
 		}
+	},
+	alt_customer: function (frm) {
+		frm.set_value("alt_address",null);
+		frm.set_value("alt_issued_to_address",null);
+	},
+	alt_address: function (frm) {
+		erpnext.utils.get_address_display(frm, "alt_address", "alt_issued_to_address");		
 	}
 });

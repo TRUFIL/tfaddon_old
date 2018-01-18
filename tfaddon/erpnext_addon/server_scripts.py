@@ -1,3 +1,28 @@
+# frappe.model.naming.py
+def set_name_by_naming_series(doc):
+	"""Sets name by the `naming_series` property"""
+	if not doc.naming_series:
+		doc.naming_series = get_default_naming_series(doc.doctype)
+
+	if not doc.naming_series:
+		frappe.throw(frappe._("Naming Series mandatory"))
+
+	##### Modified on 16-01-2018
+	if not doc.company:
+		frappe.throw(frappe._("Company mandatory"))
+	else:
+		company = frappe.get_doc("Company",doc.company)
+
+	if doc.doctype in ["Sales Invoice","Delivery Note"]:
+		if doc.is_return:
+			doc.naming_series = doc.naming_series + "RET-"
+
+	key = company.abbr + "-" + doc.naming_series + ".YY.-.#####"
+
+	doc.name = make_autoname(key, '', doc)
+	##### Modified on 16-01-2018
+
+
 # product_bundle.py
 def get_non_bundled_item_code(doctype, txt, searchfield, start, page_len, filters):
 	from erpnext.controllers.queries import get_match_cond
