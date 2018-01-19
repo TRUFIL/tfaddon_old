@@ -134,12 +134,6 @@ class Samples(TFStatusUpdater):
 	def get_no_of_bottles(self):
 		return frappe.db.count("Sampling Containers", filters={"parent":self.name})
 
-	def generate_sample_id(self):
-		container_list = [d.name for d in frappe.get_all('Sampling Containers', 
-			filters = {'parent': self.name})]
-		if container_list:
-			return '-'.join(container_list)
-
 	def update_child_doc_status(self):
 		bottles = frappe.get_all("Sampling Containers", filters = {"parent":self.name})
 		for bot in bottles:

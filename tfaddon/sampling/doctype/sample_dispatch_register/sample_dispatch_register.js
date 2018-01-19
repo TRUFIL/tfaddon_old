@@ -93,7 +93,7 @@ var samples_table_template = `
 				<caption>List of Samples</caption>
 				<tbody>
 					<tr>
-						<th>Sample ID</th>
+						<th>Trufil Container</th>
 						<th>Collection Date</th>
 						<th>Location</th>
 						<th>Equipment</th>

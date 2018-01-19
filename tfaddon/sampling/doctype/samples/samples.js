@@ -18,6 +18,11 @@ frappe.ui.form.on('Samples', {
 				"filters": {"sampling_source": doc.smp_source, "sample_type": doc.smp_type}
 			}
 		});
+		frm.set_query("smp_condition", function(){
+			return {
+				"filters": {"is_active": 1}
+			}
+		});
 		frm.set_query("material", function(){
 			return {
 				"filters": {"material_type": doc.smp_type}
@@ -346,7 +351,7 @@ frappe.ui.form.on("Sampling Containers", {
 		}
 	},
 	containers_remove: function(frm, cdt, cdn) {
-		// Update sample_id
+		// Update trufil_container, customer_container, no_of_containers
 		var bottles = frm.doc.containers;
 		trufil_container = "";
 		customer_container = "";
