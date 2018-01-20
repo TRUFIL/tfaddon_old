@@ -97,7 +97,6 @@ var samples_table_template = `
 						<th>Collection Date</th>
 						<th>Location</th>
 						<th>Equipment</th>
-						<th>Destination Lab</th>
 						<th>Status</th>
 					</tr>
 					{% for row in rows %}
@@ -106,7 +105,6 @@ var samples_table_template = `
 						<td>{{ row.collection_date }}</td>
 						<td>{{ row.loc_area }}/{{ row.loc_location }}/{{ row.loc_cd }}</td>
 						<td>{{ row.eq_make }}/{{ row.eq_serial }}</td>
-						<td>{{ row.laboratory }}</td>
 						<td>{{ row.status }}</td>
 					</tr>
 					{% endfor %}

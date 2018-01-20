@@ -29,6 +29,10 @@ class Samples(TFStatusUpdater):
 		update_container_status(self.name,self.status)
 
 	def before_update_after_submit(self):
+		if self.docstatus == 1:
+			if not self.eq_owner:
+				frappe.throw(_("Equipment/Location Owner is required"))
+
 		if self.has_disposed_details():
 			self.status = "Disposed"
 		elif self.has_completed_job_order():
@@ -88,12 +92,6 @@ class Samples(TFStatusUpdater):
 
 			if not self.weather_condition:
 				frappe.throw(_("Please select appropriate Weather Condition"))
-
-			if not self.smp_condition:
-				frappe.throw(_("Please select appropriate Sampling Condition"))
-
-			if not self.eq_owner:
-				frappe.throw(_("Equipment/Location Owner is required"))
 
 	def has_verification_details(self):
 		if self.equipment and self.location:
