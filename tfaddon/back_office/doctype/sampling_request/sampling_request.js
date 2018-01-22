@@ -13,9 +13,7 @@ frappe.ui.form.on('Sampling Request', {
 		var doc = frm.doc;
 		frm.set_query("sales_order", function(){
 			return {
-				"filters": {"docstatus":["<",2], 
-							"status": "Received", 
-							"collected_by": "Customer"} 
+				"filters": {"docstatus":["<",2], "status":["!=","Closed"]} 
 			}
 		});
 		if(doc.docstatus == 1 && doc.workflow_state == 'In Process') {
