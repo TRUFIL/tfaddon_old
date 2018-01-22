@@ -33,7 +33,7 @@ def get_non_bundled_item_code(doctype, txt, searchfield, start, page_len, filter
 		get_match_cond(doctype),"%s", "%s"),
 		("%%%s%%" % txt, start, page_len))
 
-# item.py
+# erpnext.stock.doctype.item.item.py
 class Item(WebsiteGenerator):
 	def validate(self):
 		self.validate_product_bundle()
@@ -48,4 +48,15 @@ class Item(WebsiteGenerator):
 
 			if self.is_purchase_item:
 				frappe.throw(_("product bundle must be a non-purchase item."))
+
+# erpnext.controllers.selling_controller.py
+
+class SellingController(StockController):
+	def validate_order_type(self):
+		# valid_types = ["Sales", "Maintenance", "Shopping Cart"]
+		valid_types = ["Services","Sales", "Maintenance", "Shopping Cart"]
+		if not self.order_type:
+			self.order_type = "Sales"
+		elif self.order_type not in valid_types:
+			throw(_("Order Type must be one of {0}").format(comma_or(valid_types)))
 

@@ -2,6 +2,13 @@
  {
   "docstatus": 0, 
   "doctype": "Workflow Action", 
+  "modified": "2018-01-11 14:07:55.135158", 
+  "name": "Send for Approval", 
+  "workflow_action_name": "Send for Approval"
+ }, 
+ {
+  "docstatus": 0, 
+  "doctype": "Workflow Action", 
   "modified": "2017-07-05 17:43:27.946318", 
   "name": "Approve", 
   "workflow_action_name": "Approve"
